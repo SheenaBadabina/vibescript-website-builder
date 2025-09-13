@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>VibeScript — Something Powerful Is Coming</title>
+  <meta name="description" content="Turn one idea into a complete, on-brand presence—fast. Join the early access list." />
+  <meta name="theme-color" content="#0a0c11" />
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    /* Chakra vibe palette (matches your logo) */
+    :root{
+      --chakra1:#ff5a3a; /* red/orange */
+      --chakra2:#ff9e3a; /* orange */
+      --chakra3:#ffd84d; /* yellow */
+      --chakra4:#4dff82; /* green */
+      --chakra5:#44c0ff; /* blue */
+      --chakra6:#6a6dff; /* indigo */
+      --chakra7:#c94dff; /* violet */
+      --bg:#0a0c11; --bg2:#0f1320; --fg:#eaf2f3; --muted:#9cb1be;
+      --card:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
+      --ring:rgba(100,160,255,.35)
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; color:var(--fg);
+      background:
+        radial-gradient(1200px 600px at 100% -10%,
+          color-mix(in oklab, var(--chakra6) 30%, transparent) 0%,
+          transparent 60%),
+        radial-gradient(1000px 500px at -10% 110%,
+          color-mix(in oklab, var(--chakra2) 35%, transparent) 0%,
+          transparent 60%),
+        linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{
+      width:100%;max-width:780px;background:var(--card);border:1px solid var(--border);
+      border-radius:22px;padding:22px 18px;backdrop-filter:blur(10px)
+    }
+    .logo-wrap{
+      display:flex;align-items:center;gap:14px;margin-bottom:8px;flex-wrap:wrap
+    }
+    .logo{
+      width:min(160px,45vw);height:auto;border-radius:12px;
+      box-shadow:0 0 0 2px rgba(255,255,255,.06), 0 12px 30px rgba(0,0,0,.35);
+      background:#000;
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:10px;padding:6px 10px;border-radius:999px;
+      border:1px solid var(--border);background:rgba(255,255,255,.06);font-weight:600;font-size:12px
+    }
+    .grad{
+      background: conic-gradient(from 0deg,
+        var(--chakra1),var(--chakra2),var(--chakra3),var(--chakra4),
+        var(--chakra5),var(--chakra6),var(--chakra7),var(--chakra1));
+      -webkit-background-clip:text;background-clip:text;color:transparent
+    }
+    h1{margin:10px 0 8px;font-size:clamp(28px,6vw,44px);line-height:1.06}
+    p{margin:8px 0;color:var(--muted);font-size:clamp(14px,3.6vw,18px)}
+    .teasers{display:grid;gap:10px;margin:14px 0 10px;grid-template-columns:repeat(3,1fr)}
+    .tile{
+      text-align:center;padding:10px;border-radius:14px;border:1px solid var(--border);
+      background:rgba(255,255,255,.05);font-size:12px;color:var(--fg)
+    }
+    .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    input[type="email"]{
+      flex:1 1 240px;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.05);color:var(--fg);outline:none
+    }
+    input[type="email"]:focus{box-shadow:0 0 0 4px var(--ring)}
+    button{
+      padding:12px 16px;border-radius:12px;border:0;
+      background:linear-gradient(90deg,
+        var(--chakra1),var(--chakra2),var(--chakra3),var(--chakra4),
+        var(--chakra5),var(--chakra6),var(--chakra7));
+      color:#031015;font-weight:900;letter-spacing:.25px;cursor:pointer
+    }
+    .fine{margin-top:10px;color:#88a0ad;font-size:12px}
+    .footer{margin-top:14px;display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#7f96a2}
+    @media (max-width:520px){
+      .teasers{grid-template-columns:1fr 1fr}
+      .logo{width:min(140px,50vw)}
+    }
+    @media (prefers-color-scheme:light){
+      :root{ --bg:#f7fbfd; --bg2:#eaf2f3; --fg:#0b0f14; --muted:#425159; --card:#ffffffea; --border:rgba(0,0,0,.08) }
+      .tile, .badge{background:#fff}
+      input[type="email"]{background:#fff}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card" aria-label="VibeScript Launch">
+      <div class="logo-wrap">
+        <img class="logo" src="./assets/vibescript-logo.png" alt="VibeScript logo" />
+        <span class="badge">✨ <span class="grad">VibeScript</span> · Early Access</span>
+      </div>
+
+      <h1><span class="grad">Turn one idea</span> into momentum</h1>
+      <p>We’re quietly building something that converts a single business idea into an on-brand presence across channels—fast, consistent, and actually useful.</p>
+
+      <div class="teasers" aria-hidden="true">
+        <div class="tile">⚡ From spark to shipping</div>
+        <div class="tile">🎯 Always on-brand</div>
+        <div class="tile">⏳ Hours saved every week</div>
+      </div>
+
+      <!-- Replace action with your Mailchimp POST URL -->
+      <form class="cta" action="https://example.usX.list-manage.com/subscribe/post?u=XXXX&amp;id=YYYY" method="post" target="_blank" novalidate>
+        <input type="email" name="EMAIL" placeholder="Your email for early access" aria-label="Email address" required />
+        <button type="submit">Join the Waitlist</button>
+      </form>
+      <div class="fine">No spam—just early invites and occasional updates.</div>
+
+      <div class="footer">
+        <span>© <span id="y"></span> VibeScript</span>
+        <span>vibescript.online</span>
+      </div>
+    </section>
+  </main>
+  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+</body>
+</html>
