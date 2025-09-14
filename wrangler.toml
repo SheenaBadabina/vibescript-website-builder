@@ -1,9 +1,3 @@
-name = "vibescript-website-builder"
+name = "buildervibescriptonline"
 main = "worker.js"
-compatibility_date = "2023-10-30"
-
-account_id = "${CLOUDFLARE_ACCOUNT_ID}"
-workers_dev = true
-
-[vars]
-# Add any environment variables you want to bind here
+compatibility_date = "2023-07-01"
