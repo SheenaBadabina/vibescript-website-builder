@@ -5,41 +5,75 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VibeScript Builder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; margin:0; color:#e5e7eb; background:radial-gradient(1000px 500px at 10% 0%, #1f2937 0, #0b0e19 60%);}
-    .wrap{max-width:960px;margin:40px auto;padding:0 16px}
-    h1{font-size:32px;margin:0 0 4px}
-    .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;margin:16px 0}
-    label{display:block;font-size:13px;margin:8px 0 4px;color:#cbd5e1}
-    input,textarea{width:100%;padding:10px 12px;border-radius:10px;background:#0f1424;border:1px solid #30364d;color:#e5e7eb}
-    textarea{min-height:80px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    button{border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:#7c3aed;color:white;font-weight:600}
-    .muted{opacity:.8}
-    .list{font-family:ui-monospace, Menlo, monospace;white-space:pre-wrap;background:#0f1424;padding:12px;border-radius:8px;border:1px solid #30364d}
+    :root { --primary:#7c3aed; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; font-family:Inter,system-ui,Arial;
+      color:#e5e7eb; background:radial-gradient(1200px 700px at 20% -10%, #1f1735 0%, transparent 60%) no-repeat,
+                      radial-gradient(1200px 700px at 120% 10%, #0e1325 0%, #0b0f1d 60%) no-repeat,
+                      #0b0f1d;
+      min-height:100vh;
+    }
+    a { color:#a78bfa; text-decoration:none; }
+    .wrap { max-width:980px; margin:0 auto; padding:28px 20px 64px; }
+    header { display:flex; gap:12px; align-items:center; margin-bottom:20px; }
+    header a { opacity:.9 }
+    h1 { margin:0; font-size:28px; font-weight:800; letter-spacing:.2px; }
+    .card {
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:18px; margin:14px 0;
+      box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .row-3 { grid-template-columns: 2fr 1fr 1fr; }
+    label { display:block; font-size:12px; opacity:.8; margin:4px 0; }
+    input, textarea {
+      width:100%; padding:12px 12px;
+      color:#e5e7eb; background:#0f1529; border:1px solid rgba(255,255,255,.08);
+      border-radius:10px; outline:none;
+    }
+    textarea { min-height:88px; resize:vertical; }
+    .btn {
+      background:var(--primary); border:none; color:white; font-weight:700;
+      padding:12px 16px; border-radius:12px; cursor:pointer;
+      box-shadow:0 10px 24px rgba(124,58,237,.35);
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:12px; }
+    .feature { display:grid; grid-template-columns:1fr; gap:8px; }
+    .feature-head { display:flex; gap:10px; align-items:center; }
+    .chip { background:#111827; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px; }
+    .muted { opacity:.75; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <a href="/" class="muted">← View site</a>
-    <h1>Edit Site Settings</h1>
-    <p class="muted">Update content and colors, then <b>Save</b>. Changes apply immediately.</p>
+    <header>
+      <a href="/"><span class="chip">← View site</span></a>
+      <h1>VibeScript Builder</h1>
+    </header>
 
     <div class="card">
+      <p class="muted">Update content and colors, then <strong>Save</strong>. Changes apply immediately.</p>
       <div class="row">
         <div>
           <label>Site title</label>
-          <input id="title" placeholder="Site title" />
+          <input id="title" placeholder="VibeScript" />
         </div>
         <div>
           <label>Primary color</label>
           <input id="primaryColor" placeholder="#7c3aed" />
         </div>
       </div>
-
-      <label>Tagline</label>
-      <input id="tagline" placeholder="Tagline" />
-
+      <div class="row">
+        <div>
+          <label>Tagline</label>
+          <input id="tagline" placeholder="Turn one idea into momentum." />
+        </div>
+      </div>
       <div class="row">
         <div>
           <label>CTA text</label>
@@ -47,22 +81,28 @@
         </div>
         <div>
           <label>CTA link</label>
-          <input id="ctaLink" placeholder="https://example.com" />
+          <input id="ctaLink" placeholder="https://vibescript.online" />
         </div>
-      </div>
-
-      <label>Features (JSON array)</label>
-      <textarea id="features"></textarea>
-
-      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
-        <button id="saveBtn">Save</button>
-        <a href="/api/settings" target="_blank" class="muted">Raw JSON</a>
       </div>
     </div>
 
-    <h2>Projects</h2>
+    <div class="card" id="featuresCard">
+      <h3 style="margin:0 0 8px 0">Features</h3>
+      <div id="features"></div>
+      <div style="margin-top:10px">
+        <button class="btn" id="addFeature">+ Add Feature</button>
+      </div>
+    </div>
+
     <div class="card">
-      <div class="row">
+      <button class="btn" id="saveBtn">Save</button>
+      <button class="btn" id="rawBtn" style="margin-left:8px; background:#111827; box-shadow:none;">Raw JSON</button>
+      <div id="raw" class="mono" style="display:none; margin-top:10px; white-space:pre; overflow:auto"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Projects</h3>
+      <div class="row row-3">
         <div>
           <label>Project name</label>
           <input id="projName" placeholder="My first project" />
@@ -71,19 +111,18 @@
           <label>Status</label>
           <input id="projStatus" placeholder="draft" />
         </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn" id="createProject">Create project</button>
+        </div>
       </div>
-      <label>Description</label>
-      <textarea id="projDesc" placeholder="What are we building?"></textarea>
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button id="createBtn">Create project</button>
-        <a href="/api/projects" target="_blank" class="muted">List (JSON)</a>
+      <div style="margin-top:10px">
+        <button class="btn" id="listProjects">List (JSON)</button>
       </div>
+      <div id="projectsOut" class="mono" style="margin-top:10px; white-space:pre; overflow:auto"></div>
     </div>
 
-    <div class="card">
-      <h3 style="margin:0 0 8px">Existing projects</h3>
-      <div id="projects" class="list">Loading…</div>
-    </div>
+    <p class="muted mono">Tip: drag-select and copy your content elsewhere for safekeeping before big edits.</p>
   </div>
 
   <script src="/edit/app.js" type="module"></script>
