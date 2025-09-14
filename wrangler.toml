@@ -1,14 +1,11 @@
 name = "buildervibescriptonline"
-main = "src/worker.js"
-compatibility_date = "2024-06-20"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
 
-[vars]
-# Optional: defaults; secrets will override where appropriate
-
-[[kv_namespaces]]
-binding = "VIBESCRIPT_SETTINGS"
-id = "REPLACE_WITH_SETTINGS_NAMESPACE_ID"
-
-[[kv_namespaces]]
-binding = "VIBESCRIPT_PROJECTS"
-id = "REPLACE_WITH_PROJECTS_NAMESPACE_ID"
+# Replace the ids below with your real KV Namespace IDs from Cloudflare.
+# Find them here: https://dash.cloudflare.com/abd03f1ef831687def8eb96cda0389a0/workers/kv/namespaces
+kv_namespaces = [
+  { binding = "VIBESCRIPT_SETTINGS", id = "REPLACE_WITH_vibescript_settings_ID" },
+  { binding = "VIBESCRIPT_PROJECTS", id = "REPLACE_WITH_vibescript_projects_ID" }
+]
