@@ -1,57 +1,32 @@
-// functions/api/projects.ts
-type Project = {
-  id: string;
-  name: string;
-  status: string;
-  description?: string;
-  createdAt: string;
+type Project = { id: string; name: string; status?: string; description?: string; createdAt: string };
+
+const KEY = "projects";
+
+async function readAll(env: any): Promise<Project[]> {
+  return (await env.VIBESCRIPT_PROJECTS.get<Project[]>(KEY, "json")) || [];
+}
+
+export const onRequestGet: PagesFunction<{ VIBESCRIPT_PROJECTS: KVNamespace }> = async ({ env }) => {
+  const list = await readAll(env);
+  return Response.json(list);
 };
 
-const KEY = (id: string) => `p:${id}`;
-
-export async function onRequestGet(ctx: EventContext<{
-  VIBESCRIPT_PROJECTS: KVNamespace;
-}>) {
-  const items: Project[] = [];
-  let cursor: string | undefined = undefined;
-  do {
-    const page = await ctx.env.VIBESCRIPT_PROJECTS.list({ prefix: "p:", cursor });
-    for (const k of page.keys) {
-      const raw = await ctx.env.VIBESCRIPT_PROJECTS.get(k.name);
-      if (raw) items.push(JSON.parse(raw));
-    }
-    cursor = page.cursor;
-  } while (cursor);
-  // newest first
-  items.sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
-  return new Response(JSON.stringify(items), {
-    headers: { "content-type": "application/json" },
-  });
-}
-
-export async function onRequestPost(ctx: EventContext<{
-  VIBESCRIPT_PROJECTS: KVNamespace;
-}>) {
+export const onRequestPost: PagesFunction<{ VIBESCRIPT_PROJECTS: KVNamespace }> = async ({ request, env }) => {
   try {
-    const body = (await ctx.request.json()) as Partial<Project>;
-    if (!body.name) throw new Error("name is required");
-    const now = new Date().toISOString();
-    const id = `${Date.now()}`;
-    const proj: Project = {
-      id,
-      name: body.name,
-      status: body.status || "draft",
-      description: body.description || "",
-      createdAt: now,
+    const { name, status, description } = await request.json();
+    if (!name || !String(name).trim()) throw new Error("name required");
+    const list = await readAll(env);
+    const p: Project = {
+      id: crypto.randomUUID(),
+      name: String(name).trim().slice(0, 140),
+      status: String(status || "draft").slice(0, 40),
+      description: description ? String(description).slice(0, 2000) : "",
+      createdAt: new Date().toISOString(),
     };
-    await ctx.env.VIBESCRIPT_PROJECTS.put(KEY(id), JSON.stringify(proj));
-    return new Response(JSON.stringify({ ok: true, id }), {
-      headers: { "content-type": "application/json" },
-    });
+    list.unshift(p);
+    await env.VIBESCRIPT_PROJECTS.put(KEY, JSON.stringify(list));
+    return Response.json({ ok: true, project: p });
   } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(JSON.stringify({ ok: false, error: e?.message || "bad json" }), { status: 400 });
   }
-}
+};
