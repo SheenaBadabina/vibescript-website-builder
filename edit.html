@@ -1,222 +1,115 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>VibeScript Builder</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg1:#0d0f1a;--bg2:#161a2b;--panel:#111427;--muted:#8b90a7;--text:#e9ecf8;--accent:#7c5cff;--accent-2:#1aead2}
-*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-body{margin:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--text)}
-.wrap{max-width:900px;margin:0 auto;padding:20px 16px 80px}
-h1{font-size:32px;margin:8px 0 18px;font-weight:800}
-.card{background:rgba(17,20,39,.85);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;margin:14px 0}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.row.single{grid-template-columns:1fr}
-label{display:block;font-size:12px;color:var(--muted);margin:6px 2px}
-input,select,textarea{width:100%;background:#0d1020;border:1px solid #24263a;color:var(--text);border-radius:10px;padding:12px 12px;font-size:15px;outline:none}
-textarea{min-height:120px;resize:vertical}
-.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;transition:.15s}
-.btn:disabled{opacity:.6;cursor:not-allowed}
-.btn-primary{background:var(--accent);color:white}
-.btn-ghost{background:#0d1020;color:var(--text);border:1px solid #2a2d48}
-.btn-mint{background:var(--accent-2);color:#0a0f14}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap}
-.muted{color:var(--muted)}
-.list{background:#0d1020;border:1px solid #24263a;border-radius:12px;padding:10px;margin-top:10px}
-.pill{display:inline-block;background:#0d1020;border:1px solid #2a2d48;border-radius:999px;padding:6px 10px;font-size:12px;color:#cfd3ea}
-.notice{font-size:13px;color:#b8bcdf;margin-top:8px}
-.gate{display:none;place-items:center;min-height:100vh;padding:24px}
-.gate.show{display:grid}
-.gate-card{max-width:420px;width:100%}
-.brand{font-size:13px;color:#9aa0bf;margin:0 0 16px}
-.title-xl{font-size:28px;font-weight:800;margin:0 0 8px}
-.error{color:#ff8b8b}
-@media (max-width:720px){.row{grid-template-columns:1fr}}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript Builder</title>
+  <style>
+    :root { --bg:#0c1420; --card:#0f1b2a; --text:#e7eef7; --muted:#9db2c9; --brand:#7c5cff; }
+    html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    .wrap{max-width:720px;margin:0 auto;padding:48px 20px}
+    .card{background:var(--card);border:1px solid #223149;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+    h1{font-size:36px;margin:0 0 8px} .lead{color:var(--muted);margin:0 0 24px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    input[type="password"],input[type="text"]{flex:1;min-width:240px;background:#0a1422;border:1px solid #28364a;border-radius:12px;color:var(--text);padding:14px 16px;font-size:16px;outline:none}
+    input::placeholder{color:#6c85a3}
+    button{background:var(--brand);border:0;color:white;padding:14px 18px;border-radius:12px;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .note{font-size:14px;color:var(--muted);margin-top:10px}
+    .debug{margin-top:18px;border-top:1px dashed #2a3a52;padding-top:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#cfe2ff;white-space:pre-wrap}
+    .ok{color:#9ff29f} .err{color:#ff9aa2}
+    .hidden{display:none}
+    .link{color:#9fc5ff;text-decoration:underline;cursor:pointer}
+  </style>
 </head>
 <body>
-<div id="gate" class="gate">
-  <div class="card gate-card">
-    <div class="brand">🔒 VibeScript Builder</div>
-    <div class="title-xl">Enter your access token</div>
-    <p class="muted">Use the value you set for <span class="pill">PAGES_BUILDER_TOKEN</span> in Cloudflare.</p>
-    <label>Token</label>
-    <input id="gateToken" autocomplete="off" placeholder="••••••••"/>
-    <div style="height:10px"></div>
-    <button class="btn btn-primary" id="gateBtn">Continue</button>
-    <div id="gateMsg" class="notice"></div>
-  </div>
-</div>
+  <div class="wrap">
+    <div class="card">
+      <h1>🔒 VibeScript Builder</h1>
+      <p class="lead">Enter your access token to continue.</p>
 
-<div class="wrap" id="app" style="display:none">
-  <h1>VibeScript Builder</h1>
+      <div class="row">
+        <input id="token" type="password" placeholder="token" autocomplete="off" />
+        <button id="go">Continue</button>
+      </div>
+      <div class="note">Tip: you can also open <span class="link" id="qs">/edit?key=YOUR_TOKEN</span></div>
 
-  <!-- Settings -->
-  <div class="card">
-    <h3 style="margin:4px 0 12px">Edit Site Settings</h3>
-    <div class="row">
-      <div><label>Site title</label><input id="siteTitle" placeholder="VibeScript vibin'"></div>
-      <div><label>Primary color</label><input id="primaryColor" placeholder="#1aead2"></div>
-      <div><label>Tagline</label><input id="tagline" placeholder="Turn one idea into momentum."></div>
-      <div><label>CTA text</label><input id="ctaText" placeholder="Get Started"></div>
-      <div><label>CTA link</label><input id="ctaLink" placeholder="https://vibescript.online"></div>
-    </div>
-    <div class="toolbar" style="margin-top:12px">
-      <button id="saveSettings" class="btn btn-primary">Save</button>
-      <a class="btn btn-ghost" href="/" target="_blank">View site</a>
-    </div>
-    <div id="settingsMsg" class="notice"></div>
-  </div>
+      <div id="debug" class="debug hidden"></div>
 
-  <!-- AI -->
-  <div class="card">
-    <h3 style="margin:4px 0 12px">Generate with AI</h3>
-    <div class="row">
-      <div><label>Business input</label><textarea id="aiInput" placeholder="Promote my yoga studio's new 6AM class starting Monday..."></textarea></div>
-      <div><label>System style (optional)</label><textarea id="aiStyle" placeholder="You are a precise, conversion-focused content strategist..."></textarea></div>
-    </div>
-    <div class="row">
-      <div><label>Temperature</label><input id="aiTemp" value="0.7"></div>
-      <div><label>Max tokens</label><input id="aiMax" value="600"></div>
-    </div>
-    <div class="toolbar" style="margin-top:12px">
-      <button id="aiGenerate" class="btn btn-primary">Generate</button>
-      <button id="aiInsert" class="btn btn-ghost">Insert → Features</button>
-      <button id="aiCopy" class="btn btn-ghost">Copy</button>
-    </div>
-    <div id="aiMsg" class="notice"></div>
-    <div id="aiOut" class="list" style="white-space:pre-wrap;min-height:80px"></div>
-  </div>
-
-  <!-- Projects -->
-  <div class="card">
-    <h3 style="margin:4px 0 12px">Projects</h3>
-    <div class="row">
-      <div><label>Project name</label><input id="projName" placeholder="My first project"></div>
-      <div><label>Status</label>
-        <select id="projStatus">
-          <option value="draft">draft</option><option value="active">active</option><option value="archived">archived</option>
-        </select>
+      <div id="unlocked" class="hidden">
+        <p class="ok">✅ Token valid. Loading builder…</p>
+      </div>
+      <div id="blocked" class="hidden">
+        <p class="err">❌ Access denied. Check your token or server binding.</p>
       </div>
     </div>
-    <div class="toolbar" style="margin-top:12px">
-      <button id="btnList" class="btn btn-ghost">List (refresh)</button>
-      <button id="btnCreate" class="btn btn-mint">Create project</button>
-    </div>
-    <div id="projMsg" class="notice"></div>
-    <div id="projList" class="list">No projects yet.</div>
   </div>
-</div>
 
-<script>
-(function(){
-  const $ = (id)=>document.getElementById(id);
-  const tokenKey="vsb_token";
-  const gate=$("gate"), app=$("app"), msg=$("gateMsg");
+  <script>
+    const INPUT = document.getElementById('token');
+    const BTN = document.getElementById('go');
+    const DBG = document.getElementById('debug');
+    const OK = document.getElementById('unlocked');
+    const NO = document.getElementById('blocked');
+    const QS = document.getElementById('qs');
 
-  function authH(){ const t=localStorage.getItem(tokenKey); return t?{Authorization:"Bearer "+t}:{}}  
+    const STORAGE_KEY = 'VS_BUILDER_TOKEN';
 
-  // Validate token against /api/projects (this endpoint enforces token)
-  async function validateToken(tkn){
-    try{
-      const r = await fetch("/api/projects",{headers:tkn?{Authorization:"Bearer "+tkn}:{}, cache:"no-store"});
-      if (r.status === 401) return false;
-      if (!r.ok) return false;
-      return true;
-    }catch(_){ return false; }
-  }
+    // Fill from ?key=... if present
+    const url = new URL(location.href);
+    const qsKey = url.searchParams.get('key');
+    if (qsKey) INPUT.value = qsKey;
 
-  // Open gate if no valid token
-  async function boot(){
-    // auto-read ?key=... and store
-    const p = new URLSearchParams(location.search);
-    const urlKey = p.get("key");
-    if (urlKey){ localStorage.setItem(tokenKey, urlKey); }
+    QS.addEventListener('click', () => {
+      const sample = location.origin + '/edit?key=PASTE_TOKEN_HERE';
+      navigator.clipboard?.writeText(sample).catch(()=>{});
+      show('Copied example to clipboard:\n' + sample);
+    });
 
-    const t = localStorage.getItem(tokenKey) || "";
-    if (t){
-      msg.textContent="Verifying token…";
-      const ok = await validateToken(t);
-      if (ok){ showApp(); return; }
-      msg.innerHTML = '<span class="error">Invalid token</span>';
-      localStorage.removeItem(tokenKey);
+    function show(msg, isError=false){
+      DBG.classList.remove('hidden');
+      DBG.innerText = (isError ? '⚠️ ' : '') + msg;
+      if(isError) { NO.classList.remove('hidden'); OK.classList.add('hidden'); }
     }
-    gate.classList.add("show");
-  }
 
-  function showApp(){
-    gate.classList.remove("show");
-    app.style.display="block";
-    init();
-  }
+    async function testToken(token){
+      try{
+        const res = await fetch('/api/ping', {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const text = await res.text();
 
-  $("gateBtn").addEventListener("click", async ()=>{
-    const t = $("gateToken").value.trim();
-    if (!t){ msg.textContent="Enter a token."; return; }
-    msg.textContent="Verifying token…";
-    const ok = await validateToken(t);
-    if (ok){ localStorage.setItem(tokenKey,t); showApp(); }
-    else { msg.innerHTML = '<span class="error">Invalid token</span>'; }
-  });
+        show(`Response ${res.status}: ${text}${res.headers.get('cf-ray') ? `\nRay: ${res.headers.get('cf-ray')}` : ''}`);
 
-  // ----- Settings -----
-  async function loadSettings(){
-    try{ const r=await fetch("/api/settings",{headers:authH(), cache:"no-store"}); if(!r.ok) return;
-      const s=await r.json();
-      $("siteTitle").value=s.siteTitle||""; $("primaryColor").value=s.primaryColor||"";
-      $("tagline").value=s.tagline||""; $("ctaText").value=s.ctaText||""; $("ctaLink").value=s.ctaLink||"";
-    }catch(_){}
-  }
-  $("saveSettings").addEventListener("click", async ()=>{
-    $("settingsMsg").textContent="Saving…";
-    const payload={siteTitle:$("siteTitle").value,primaryColor:$("primaryColor").value,tagline:$("tagline").value,ctaText:$("ctaText").value,ctaLink:$("ctaLink").value};
-    const r=await fetch("/api/settings",{method:"PATCH",headers:{"Content-Type":"application/json",...authH()},body:JSON.stringify(payload)});
-    $("settingsMsg").textContent=r.ok?"Saved. Refresh / to see it.":"Save failed.";
-  });
+        if(res.ok){
+          OK.classList.remove('hidden');
+          NO.classList.add('hidden');
+          localStorage.setItem(STORAGE_KEY, token);
+          // Give the message a moment to show, then reload clean /edit
+          setTimeout(() => { location.href = '/edit'; }, 600);
+        }else{
+          NO.classList.remove('hidden');
+          OK.classList.add('hidden');
+        }
+      }catch(err){
+        show('Network error: ' + (err?.message || err), true);
+      }
+    }
 
-  // ----- Projects -----
-  async function listProjects(){
-    $("projMsg").textContent="Loading…";
-    const r=await fetch("/api/projects",{headers:authH(), cache:"no-store"});
-    if(!r.ok){ $("projMsg").textContent="Load failed."; return;}
-    const rows=await r.json();
-    $("projMsg").textContent=rows.length?"":"No projects yet.";
-    $("projList").innerHTML=rows.length?rows.map(p=>`<div class="card" style="padding:10px;margin:8px 0">
-      <div><strong>${p.name}</strong></div><div class="muted">id: ${p.id}</div><div class="pill" style="margin-top:6px">${p.status}</div>
-    </div>`).join(""):"No projects yet.";
-  }
-  async function createProject(){
-    const name=$("projName").value.trim(); const status=$("projStatus").value;
-    if(!name){$("projMsg").textContent="Enter a project name.";return;}
-    $("projMsg").textContent="Creating…";
-    const r=await fetch("/api/projects",{method:"POST",headers:{"Content-Type":"application/json",...authH()},body:JSON.stringify({name,status})});
-    $("projMsg").textContent=r.ok?"Created.":"Create failed."; if(r.ok) listProjects();
-  }
-  $("btnList").addEventListener("click",listProjects);
-  $("btnCreate").addEventListener("click",createProject);
+    BTN.addEventListener('click', () => {
+      const token = INPUT.value.trim();
+      if(!token){ show('Please enter a token'); return; }
+      BTN.disabled = true;
+      testToken(token).finally(() => BTN.disabled = false);
+    });
 
-  // ----- AI -----
-  $("aiGenerate").addEventListener("click", async ()=>{
-    const input=$("aiInput").value.trim();
-    if(!input){$("aiMsg").textContent="Provide some business input.";return;}
-    $("aiMsg").textContent="Generating…"; $("aiOut").textContent="";
-    const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json",...authH()},body:JSON.stringify({
-      input, style:$("aiStyle").value, temperature:$("aiTemp").value, maxTokens:$("aiMax").value
-    })});
-    if(!r.ok){$("aiMsg").textContent="Generation failed."; return;}
-    const data=await r.json(); $("aiMsg").textContent="Done."; $("aiOut").textContent=data.text||"(empty)";
-  });
-  $("aiCopy").addEventListener("click",async()=>{
-    const t=$("aiOut").textContent||""; if(!t) return;
-    try{ await navigator.clipboard.writeText(t); $("aiMsg").textContent="Copied."; }catch{ $("aiMsg").textContent="Copy failed."; }
-  });
-  $("aiInsert").addEventListener("click",()=>{ $("aiMsg").textContent="(Insert→Features) coming soon."; });
-
-  function init(){ loadSettings(); listProjects(); }
-  boot();
-})();
-</script>
+    // Auto-test if token already saved
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved && !qsKey){
+      show('Found saved token, validating…');
+      testToken(saved);
+    }
+  </script>
 </body>
 </html>
