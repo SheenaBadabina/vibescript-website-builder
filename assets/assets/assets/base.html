@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root{
+    --primary: {{PRIMARY}};
+    --text:#e5e7eb; --muted:#a3b2c6; --card:#0f1420; --bg:#0b0f17; --radius:22px;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0; font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    color:var(--text); background:
+      radial-gradient(100% 55% at 50% 0%, rgba(124,58,237,.12), transparent 64%),
+      linear-gradient(#0a0e16,#0b0f17 40%, #0b0f17);
+    min-height:100%;
+  }
+  .wrap{max-width:1000px; margin:0 auto; padding:20px}
+  .card{
+    margin:48px auto; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0));
+    border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:0 24px 64px rgba(0,0,0,.44);
+    padding:28px; max-width:780px;
+  }
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .brand .logo{
+    width:34px; height:34px; border-radius:10px;
+    background: conic-gradient(#ff9d00,#ffe600,#70ff00,#00ffe1,#4f46e5,#a21caf,#ff3cac);
+    display:inline-flex; align-items:center; justify-content:center; color:#0b0f17; font-weight:900; font-size:.8rem;
+  }
+  .brand span{letter-spacing:.3px; color:#c0ccdd}
+
+  h1{
+    margin:8px 0 14px 0;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    background: linear-gradient(90deg,#ff9d00,#ffe600,#70ff00,#00ffe1,#4f46e5,#a21caf,#ff3cac);
+    -webkit-background-clip: text; background-clip:text; color:transparent; font-weight:900;
+  }
+  p.lead{font-size:clamp(1rem,2.8vw,1.2rem); color:#c9d4e5; line-height:1.7}
+
+  .email{margin:20px 0 10px 0}
+  .email input{
+    width:100%; background:#0b1220; color:var(--text); border:1px solid rgba(148,163,184,.25);
+    border-radius:14px; padding:14px 16px; outline:none;
+  }
+  .cta{
+    display:inline-block; margin-top:12px; border-radius:999px; font-weight:800;
+    padding:12px 18px; color:#0b0f17; text-decoration:none;
+    background:linear-gradient(90deg,#ff9d00,#ffe600,#70ff00,#00ffe1,#4f46e5,#a21caf,#ff3cac);
+    box-shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  .muted{color:var(--muted)}
+  footer{opacity:.6; text-align:center; margin:24px 0 50px 0; font-size:.9rem}
+  nav{display:flex; gap:16px; flex-wrap:wrap; margin:6px 0 12px}
+  nav a{color:#c9d4e5; text-decoration:none; font-weight:600}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">
+        <div class="logo">VS</div>
+        <span>{{TITLE}}</span>
+      </div>
+
+      <nav>
+        {{NAV}}
+      </nav>
+
+      <h1>{{TITLE}}</h1>
+      <p class="lead">{{TAGLINE}}</p>
+
+      <div class="email">
+        <!-- Optional email input you can keep/remove later -->
+        <input type="email" placeholder="Your email address" aria-label="Email">
+      </div>
+
+      <a class="cta" href="{{CTA_HREF}}">{{CTA_TEXT}}</a>
+
+      <p class="muted" style="margin-top:18px">{{ABOUT}}</p>
+    </div>
+
+    <footer>© 2025 {{TITLE}}. All rights reserved.</footer>
+  </div>
+</body>
+</html>
