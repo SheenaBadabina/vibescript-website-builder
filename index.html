@@ -1,17 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>VibeScript Builder</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <script src="assets/js/builder.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript — Website Builder</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- JSZip for downloads -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>VibeScript Website Builder</h1>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span class="brand-name">VibeScript Builder</span>
+    </div>
   </header>
-  <main>
-    <p>Welcome! Use the builder to generate new pages.</p>
-    <button onclick="createPage('About')">Create About Page</button>
-  </main>
-</body>
-</html>
+
+  <main class="layout">
+    <!-- Left: Controls -->
+    <section class="panel">
+      <h1 class="panel-title">Site settings</h1>
+
+      <label class="field">
+        <span>Site title</span>
+        <input id="siteTitle" type="text" placeholder="My Business" value="VibeScript Demo">
+      </label>
+
+      <label class="field">
+        <span>Tagline</span>
+        <input id="siteTagline" type="text" placeholder="Say your vibe in one line" value="Turn one idea into momentum.">
+      </label>
+
+      <label class="field">
+        <span>Primary color</span>
+        <input id="primaryColor" type="color" value="#7C3AED">
+      </label>
+
+      <label class="field">
+        <span>CTA text</span>
+        <input id="ctaText" type="text" value="Get Started">
+      </label>
+
+      <label class="field">
+        <span>CTA link (optional)</span>
+        <input id="ctaHref" type="url" placeholder="https://example.com">
