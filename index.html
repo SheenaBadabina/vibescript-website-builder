@@ -1,47 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VibeScript — Website Builder</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
-  <!-- JSZip for downloads -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VibeScript</title>
+  <style>
+    :root { --primary:#7c3aed; }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;color:#e5e7eb;background:radial-gradient(1000px 500px at 10% 0%, #1f2937 0, #0b0e19 60%);}
+    .hero{max-width:960px;margin:80px auto;padding:0 16px;text-align:center}
+    h1{font-size:48px;margin:0 0 10px}
+    p{opacity:.85}
+    a.btn{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:12px;background:var(--primary);color:white;text-decoration:none;font-weight:700}
+    .top{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:20px auto;padding:0 16px}
+    .top a{color:#cbd5e1;text-decoration:none}
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="dot"></span>
-      <span class="brand-name">VibeScript Builder</span>
-    </div>
-  </header>
-
-  <main class="layout">
-    <!-- Left: Controls -->
-    <section class="panel">
-      <h1 class="panel-title">Site settings</h1>
-
-      <label class="field">
-        <span>Site title</span>
-        <input id="siteTitle" type="text" placeholder="My Business" value="VibeScript Demo">
-      </label>
-
-      <label class="field">
-        <span>Tagline</span>
-        <input id="siteTagline" type="text" placeholder="Say your vibe in one line" value="Turn one idea into momentum.">
-      </label>
-
-      <label class="field">
-        <span>Primary color</span>
-        <input id="primaryColor" type="color" value="#7C3AED">
-      </label>
-
-      <label class="field">
-        <span>CTA text</span>
-        <input id="ctaText" type="text" value="Get Started">
-      </label>
-
-      <label class="field">
-        <span>CTA link (optional)</span>
-        <input id="ctaHref" type="url" placeholder="https://example.com">
+  <div class="top">
+    <div id="siteTitle">VibeScript</div>
+    <a href="/edit/">Builder</a>
+  </div>
+  <div class="hero">
+    <h1 id="headline">Loading…</h1>
+    <p id="tagline"></p>
+    <a id="cta" class="btn" href="#">Get Started</a>
+  </div>
+  <script type="module">
+    const res = await fetch('/api/settings'); const s = await res.json();
+    document.documentElement.style.setProperty('--primary', s.primaryColor || '#7c3aed');
+    document.getElementById('siteTitle').textContent = s.title || 'VibeScript';
+    document.getElementById('headline').textContent = s.title || 'VibeScript';
+    document.getElementById('tagline').textContent = s.tagline || '';
+    const cta = document.getElementById('cta');
+    cta.textContent = s.ctaText || 'Get Started';
+    cta.href = s.ctaLink || '#';
+  </script>
+</body>
+</html>
