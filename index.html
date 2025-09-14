@@ -1,39 +1,130 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VibeScript</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript Builder</title>
   <style>
-    :root { --primary:#7c3aed; }
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;color:#e5e7eb;background:radial-gradient(1000px 500px at 10% 0%, #1f2937 0, #0b0e19 60%);}
-    .hero{max-width:960px;margin:80px auto;padding:0 16px;text-align:center}
-    h1{font-size:48px;margin:0 0 10px}
-    p{opacity:.85}
-    a.btn{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:12px;background:var(--primary);color:white;text-decoration:none;font-weight:700}
-    .top{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:20px auto;padding:0 16px}
-    .top a{color:#cbd5e1;text-decoration:none}
+    :root { --primary: #7c3aed; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: #e6e6f0;
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(124,58,237,.35), transparent 60%),
+                  radial-gradient(1200px 700px at 120% 10%, rgba(99,102,241,.25), transparent 60%),
+                  linear-gradient(180deg, #0b0c10 0%, #0a0914 60%, #090814 100%);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+    header h1 { margin: 0 0 4px; font-size: 44px; line-height: 1.05; }
+    header p  { margin: 6px 0 18px; color: #b8b8c8; font-size: 18px; }
+    .cta-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: 12px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04); color:#e6e6f0; text-decoration:none; font-weight:600;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+    }
+    .btn:hover { background: rgba(255,255,255,.07); transform: translateY(-1px); }
+    .btn.cta { background: var(--primary); border-color: rgba(255,255,255,.18); color: #0b0c10; }
+    .btn.cta:hover { filter: brightness(1.06); }
+    .card {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px; padding: 18px; margin: 16px 0;
+    }
+    .grid { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    h2 { margin: 28px 0 10px; font-size: 22px; }
+    .footer { margin-top: 48px; color:#9aa; font-size: 14px; }
   </style>
 </head>
 <body>
-  <div class="top">
-    <div id="siteTitle">VibeScript</div>
-    <a href="/edit/">Builder</a>
+  <div class="wrap">
+    <header>
+      <h1 id="siteTitle">VibeScript Builder</h1>
+      <p id="tagline">Turn one idea into momentum.</p>
+      <div class="cta-row">
+        <!-- REAL LINK: will be set from settings; opens even if JS fails -->
+        <a id="cta" class="btn cta" href="https://vibescript.online" target="_blank" rel="noopener">Get Started</a>
+        <a class="btn" href="/edit">Edit</a>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Features</h2>
+      <div id="features" class="grid">
+        <!-- filled by JS from settings -->
+      </div>
+    </section>
+
+    <section class="footer">
+      <div>© <span id="year"></span> VibeScript. Served on Cloudflare.</div>
+    </section>
   </div>
-  <div class="hero">
-    <h1 id="headline">Loading…</h1>
-    <p id="tagline"></p>
-    <a id="cta" class="btn" href="#">Get Started</a>
-  </div>
-  <script type="module">
-    const res = await fetch('/api/settings'); const s = await res.json();
-    document.documentElement.style.setProperty('--primary', s.primaryColor || '#7c3aed');
-    document.getElementById('siteTitle').textContent = s.title || 'VibeScript';
-    document.getElementById('headline').textContent = s.title || 'VibeScript';
-    document.getElementById('tagline').textContent = s.tagline || '';
-    const cta = document.getElementById('cta');
-    cta.textContent = s.ctaText || 'Get Started';
-    cta.href = s.ctaLink || '#';
+
+  <script>
+    // Util: safe element factory
+    function el(tag, attrs={}, children=[]) {
+      const n = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v]) => (k in n) ? n[k]=v : n.setAttribute(k,v));
+      (Array.isArray(children)?children:[children]).forEach(c => n.append(c.nodeType?c:document.createTextNode(c)));
+      return n;
+    }
+
+    async function loadSettings() {
+      try {
+        const r = await fetch('/api/settings', { headers: { 'Accept': 'application/json' }});
+        if (!r.ok) throw new Error('settings fetch failed: ' + r.status);
+        const s = await r.json();
+
+        // Apply core fields
+        if (s.primaryColor) document.documentElement.style.setProperty('--primary', s.primaryColor);
+        if (s.siteTitle) document.getElementById('siteTitle').textContent = s.siteTitle;
+        if (s.tagline)   document.getElementById('tagline').textContent   = s.tagline;
+
+        // CTA: set text + real href (JS not required to navigate)
+        const cta = document.getElementById('cta');
+        if (s.ctaText) cta.textContent = s.ctaText;
+        if (s.ctaLink) {
+          cta.href = s.ctaLink;
+          // open external links in new tab, internal as same-tab
+          try {
+            const url = new URL(s.ctaLink, location.origin);
+            if (url.origin === location.origin && url.pathname.startsWith('/')) {
+              cta.removeAttribute('target'); cta.removeAttribute('rel');
+            } else {
+              cta.target = '_blank'; cta.rel = 'noopener';
+            }
+          } catch(_) {}
+        }
+
+        // Features
+        const box = document.getElementById('features');
+        box.innerHTML = '';
+        const list = Array.isArray(s.features) ? s.features : [];
+        if (list.length === 0) {
+          box.append(el('div',{className:'card'},[
+            el('strong',{},'Fast'), el('div',{},'Launch a clean page in minutes.')
+          ]));
+        } else {
+          list.forEach(f => {
+            const title = (f && f.title) ? f.title : 'Feature';
+            const body  = (f && f.body)  ? f.body  : '';
+            box.append(el('div',{className:'card'},[
+              el('strong',{},title),
+              el('div',{},body)
+            ]));
+          });
+        }
+      } catch (err) {
+        console.warn(err);
+        // Fall back to defaults already in HTML; still keep the CTA a real link.
+      }
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+    loadSettings();
   </script>
 </body>
 </html>
