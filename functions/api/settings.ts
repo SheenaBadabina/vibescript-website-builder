@@ -1,31 +1,50 @@
-export interface Env {
-  VIBESCRIPT_SETTINGS: KVNamespace;
+// functions/api/settings.ts
+export interface SiteSettings {
+  title: string;
+  tagline: string;
+  primaryColor: string;
+  ctaText: string;
+  ctaLink: string;
+  features: { title: string; text: string }[];
 }
 
-const DEFAULT_SETTINGS = {
-  title: "VibeScript Demo",
+const DEFAULTS: SiteSettings = {
+  title: "VibeScript",
   tagline: "Turn one idea into momentum.",
   primaryColor: "#7c3aed",
   ctaText: "Get Started",
-  ctaLink: "https://vibescript.online",
-  features: [
-    { title: "Fast", text: "Launch a clean page in minutes." },
-    { title: "Flexible", text: "Tweak colors, copy, and layout." },
-    { title: "Hosted", text: "Served on Cloudflare’s global edge." },
-  ],
+  ctaLink: "",
+  features: [{ title: "Fast", text: "Launch a clean page in minutes." }],
 };
 
-export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
-  const data = await env.VIBESCRIPT_SETTINGS.get("site", { type: "json" });
-  return new Response(JSON.stringify(data ?? DEFAULT_SETTINGS), {
+export async function onRequestGet(ctx: EventContext<{
+  VIBESCRIPT_SETTINGS: KVNamespace;
+}>) {
+  const raw = await ctx.env.VIBESCRIPT_SETTINGS.get("site");
+  const data = raw ? JSON.parse(raw) : DEFAULTS;
+  return new Response(JSON.stringify(data), {
     headers: { "content-type": "application/json" },
   });
-};
+}
 
-export const onRequestPut: PagesFunction<Env> = async ({ request, env }) => {
-  const body = await request.json();
-  await env.VIBESCRIPT_SETTINGS.put("site", JSON.stringify(body));
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { "content-type": "application/json" },
-  });
-};
+export async function onRequestPost(ctx: EventContext<{
+  VIBESCRIPT_SETTINGS: KVNamespace;
+}>) {
+  try {
+    const body = (await ctx.request.json()) as Partial<SiteSettings>;
+    const merged: SiteSettings = {
+      ...DEFAULTS,
+      ...body,
+      features: Array.isArray(body.features) ? body.features : DEFAULTS.features,
+    };
+    await ctx.env.VIBESCRIPT_SETTINGS.put("site", JSON.stringify(merged));
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { "content-type": "application/json" },
+    });
+  } catch (e: any) {
+    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  }
+}
