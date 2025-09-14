@@ -1,5 +1,4 @@
-// functions/api/settings.ts
-export interface SiteSettings {
+export interface Settings {
   title: string;
   tagline: string;
   primaryColor: string;
@@ -8,43 +7,39 @@ export interface SiteSettings {
   features: { title: string; text: string }[];
 }
 
-const DEFAULTS: SiteSettings = {
+const DEFAULTS: Settings = {
   title: "VibeScript",
-  tagline: "Turn one idea into momentum.",
+  tagline: "",
   primaryColor: "#7c3aed",
   ctaText: "Get Started",
   ctaLink: "",
   features: [{ title: "Fast", text: "Launch a clean page in minutes." }],
 };
 
-export async function onRequestGet(ctx: EventContext<{
-  VIBESCRIPT_SETTINGS: KVNamespace;
-}>) {
-  const raw = await ctx.env.VIBESCRIPT_SETTINGS.get("site");
-  const data = raw ? JSON.parse(raw) : DEFAULTS;
-  return new Response(JSON.stringify(data), {
-    headers: { "content-type": "application/json" },
-  });
-}
+export const onRequestGet: PagesFunction<{ VIBESCRIPT_SETTINGS: KVNamespace }> = async ({ env }) => {
+  const s = await env.VIBESCRIPT_SETTINGS.get<Settings>("site", "json");
+  return Response.json(s || DEFAULTS);
+};
 
-export async function onRequestPost(ctx: EventContext<{
-  VIBESCRIPT_SETTINGS: KVNamespace;
-}>) {
+export const onRequestPost: PagesFunction<{ VIBESCRIPT_SETTINGS: KVNamespace }> = async ({ request, env }) => {
   try {
-    const body = (await ctx.request.json()) as Partial<SiteSettings>;
-    const merged: SiteSettings = {
-      ...DEFAULTS,
-      ...body,
-      features: Array.isArray(body.features) ? body.features : DEFAULTS.features,
+    const body = (await request.json()) as Partial<Settings>;
+    const safe: Settings = {
+      title: body.title?.slice(0, 120) || DEFAULTS.title,
+      tagline: body.tagline?.slice(0, 280) || "",
+      primaryColor: body.primaryColor?.slice(0, 16) || DEFAULTS.primaryColor,
+      ctaText: body.ctaText?.slice(0, 60) || DEFAULTS.ctaText,
+      ctaLink: body.ctaLink?.slice(0, 200) || "",
+      features: Array.isArray(body.features)
+        ? body.features.slice(0, 24).map(f => ({
+            title: (f?.title || "").toString().slice(0, 120),
+            text: (f?.text || "").toString().slice(0, 2000),
+          }))
+        : DEFAULTS.features,
     };
-    await ctx.env.VIBESCRIPT_SETTINGS.put("site", JSON.stringify(merged));
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { "content-type": "application/json" },
-    });
+    await env.VIBESCRIPT_SETTINGS.put("site", JSON.stringify(safe));
+    return Response.json({ ok: true });
   } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(JSON.stringify({ ok: false, error: e?.message || "bad json" }), { status: 400 });
   }
-}
+};
