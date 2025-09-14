@@ -41,7 +41,7 @@ textarea{min-height:120px;resize:vertical}
   <div class="card gate-card">
     <div class="brand">🔒 VibeScript Builder</div>
     <div class="title-xl">Enter your access token</div>
-    <p class="muted">Use the token from <span class="pill">PAGES_BUILDER_TOKEN</span>.</p>
+    <p class="muted">Use the value you set for <span class="pill">PAGES_BUILDER_TOKEN</span> in Cloudflare.</p>
     <label>Token</label>
     <input id="gateToken" autocomplete="off" placeholder="••••••••"/>
     <div style="height:10px"></div>
@@ -114,32 +114,56 @@ textarea{min-height:120px;resize:vertical}
 (function(){
   const $ = (id)=>document.getElementById(id);
   const tokenKey="vsb_token";
-  const gate=$("gate"), app=$("app");
-
-  async function pingAuth(tkn){
-    const res = await fetch("/api/settings",{headers:tkn?{Authorization:"Bearer "+tkn}:{}})
-    return res.ok || res.status===404;
-  }
-
-  async function ensureGate(){
-    const t = localStorage.getItem(tokenKey)||"";
-    if (t && await pingAuth(t)){ app.style.display="block"; init(); }
-    else { gate.classList.add("show"); }
-  }
-
-  $("gateBtn").addEventListener("click", async ()=>{
-    $("gateMsg").textContent="Verifying…";
-    const t=$("gateToken").value.trim();
-    const ok=await pingAuth(t);
-    if(ok){ localStorage.setItem(tokenKey,t); gate.classList.remove("show"); app.style.display="block"; init(); }
-    else { $("gateMsg").innerHTML='<span class="error">Invalid token</span>'; }
-  });
+  const gate=$("gate"), app=$("app"), msg=$("gateMsg");
 
   function authH(){ const t=localStorage.getItem(tokenKey); return t?{Authorization:"Bearer "+t}:{}}  
 
-  // --- Settings
+  // Validate token against /api/projects (this endpoint enforces token)
+  async function validateToken(tkn){
+    try{
+      const r = await fetch("/api/projects",{headers:tkn?{Authorization:"Bearer "+tkn}:{}, cache:"no-store"});
+      if (r.status === 401) return false;
+      if (!r.ok) return false;
+      return true;
+    }catch(_){ return false; }
+  }
+
+  // Open gate if no valid token
+  async function boot(){
+    // auto-read ?key=... and store
+    const p = new URLSearchParams(location.search);
+    const urlKey = p.get("key");
+    if (urlKey){ localStorage.setItem(tokenKey, urlKey); }
+
+    const t = localStorage.getItem(tokenKey) || "";
+    if (t){
+      msg.textContent="Verifying token…";
+      const ok = await validateToken(t);
+      if (ok){ showApp(); return; }
+      msg.innerHTML = '<span class="error">Invalid token</span>';
+      localStorage.removeItem(tokenKey);
+    }
+    gate.classList.add("show");
+  }
+
+  function showApp(){
+    gate.classList.remove("show");
+    app.style.display="block";
+    init();
+  }
+
+  $("gateBtn").addEventListener("click", async ()=>{
+    const t = $("gateToken").value.trim();
+    if (!t){ msg.textContent="Enter a token."; return; }
+    msg.textContent="Verifying token…";
+    const ok = await validateToken(t);
+    if (ok){ localStorage.setItem(tokenKey,t); showApp(); }
+    else { msg.innerHTML = '<span class="error">Invalid token</span>'; }
+  });
+
+  // ----- Settings -----
   async function loadSettings(){
-    try{ const r=await fetch("/api/settings",{headers:authH()}); if(!r.ok) return;
+    try{ const r=await fetch("/api/settings",{headers:authH(), cache:"no-store"}); if(!r.ok) return;
       const s=await r.json();
       $("siteTitle").value=s.siteTitle||""; $("primaryColor").value=s.primaryColor||"";
       $("tagline").value=s.tagline||""; $("ctaText").value=s.ctaText||""; $("ctaLink").value=s.ctaLink||"";
@@ -148,14 +172,14 @@ textarea{min-height:120px;resize:vertical}
   $("saveSettings").addEventListener("click", async ()=>{
     $("settingsMsg").textContent="Saving…";
     const payload={siteTitle:$("siteTitle").value,primaryColor:$("primaryColor").value,tagline:$("tagline").value,ctaText:$("ctaText").value,ctaLink:$("ctaLink").value};
-    const r=await fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json",...authH()},body:JSON.stringify(payload)});
-    $("settingsMsg").textContent=r.ok?"Saved.":"Save failed.";
+    const r=await fetch("/api/settings",{method:"PATCH",headers:{"Content-Type":"application/json",...authH()},body:JSON.stringify(payload)});
+    $("settingsMsg").textContent=r.ok?"Saved. Refresh / to see it.":"Save failed.";
   });
 
-  // --- Projects
+  // ----- Projects -----
   async function listProjects(){
     $("projMsg").textContent="Loading…";
-    const r=await fetch("/api/projects",{headers:authH()});
+    const r=await fetch("/api/projects",{headers:authH(), cache:"no-store"});
     if(!r.ok){ $("projMsg").textContent="Load failed."; return;}
     const rows=await r.json();
     $("projMsg").textContent=rows.length?"":"No projects yet.";
@@ -173,7 +197,7 @@ textarea{min-height:120px;resize:vertical}
   $("btnList").addEventListener("click",listProjects);
   $("btnCreate").addEventListener("click",createProject);
 
-  // --- AI
+  // ----- AI -----
   $("aiGenerate").addEventListener("click", async ()=>{
     const input=$("aiInput").value.trim();
     if(!input){$("aiMsg").textContent="Provide some business input.";return;}
@@ -191,7 +215,7 @@ textarea{min-height:120px;resize:vertical}
   $("aiInsert").addEventListener("click",()=>{ $("aiMsg").textContent="(Insert→Features) coming soon."; });
 
   function init(){ loadSettings(); listProjects(); }
-  ensureGate();
+  boot();
 })();
 </script>
 </body>
