@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VibeScript Builder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root { --primary:#7c3aed; }
@@ -29,9 +28,9 @@
       box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
     }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .row-3 { grid-template-columns: 2fr 1fr 1fr; }
+    .row-3 { grid-template-columns: 2fr 1fr 1fr; gap:14px; }
     label { display:block; font-size:12px; opacity:.8; margin:4px 0; }
-    input, textarea {
+    input, textarea, select {
       width:100%; padding:12px 12px;
       color:#e5e7eb; background:#0f1529; border:1px solid rgba(255,255,255,.08);
       border-radius:10px; outline:none;
@@ -42,26 +41,31 @@
       padding:12px 16px; border-radius:12px; cursor:pointer;
       box-shadow:0 10px 24px rgba(124,58,237,.35);
     }
+    .btn.alt { background:#111827; box-shadow:none; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:12px; }
-    .feature { display:grid; grid-template-columns:1fr; gap:8px; }
-    .feature-head { display:flex; gap:10px; align-items:center; }
-    .chip { background:#111827; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px; }
     .muted { opacity:.75; }
+    .feature-card { margin:6px 0 10px; }
+    .feature-card .buttons { display:flex; gap:8px; }
+    .feature-card .buttons button { background:#1f2937; box-shadow:none; }
+    .ai-output { white-space:pre-wrap; background:#0f1529; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:12px; min-height:100px }
+    .spinner {display:none; width:18px; height:18px; border:3px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <a href="/"><span class="chip">← View site</span></a>
+      <a href="/"><span class="btn alt">← View site</span></a>
       <h1>VibeScript Builder</h1>
     </header>
 
+    <!-- SITE SETTINGS -->
     <div class="card">
       <p class="muted">Update content and colors, then <strong>Save</strong>. Changes apply immediately.</p>
       <div class="row">
         <div>
           <label>Site title</label>
-          <input id="title" placeholder="VibeScript" />
+          <input id="siteTitle" placeholder="VibeScript" />
         </div>
         <div>
           <label>Primary color</label>
@@ -86,20 +90,54 @@
       </div>
     </div>
 
-    <div class="card" id="featuresCard">
+    <!-- FEATURES -->
+    <div class="card">
       <h3 style="margin:0 0 8px 0">Features</h3>
-      <div id="features"></div>
+      <div id="featuresWrap"></div>
       <div style="margin-top:10px">
         <button class="btn" id="addFeature">+ Add Feature</button>
       </div>
     </div>
 
+    <!-- SAVE + RAW -->
     <div class="card">
       <button class="btn" id="saveBtn">Save</button>
-      <button class="btn" id="rawBtn" style="margin-left:8px; background:#111827; box-shadow:none;">Raw JSON</button>
-      <div id="raw" class="mono" style="display:none; margin-top:10px; white-space:pre; overflow:auto"></div>
+      <button class="btn alt" id="rawJsonBtn" style="margin-left:8px;">Export JSON</button>
     </div>
 
+    <!-- AI GENERATE -->
+    <div class="card">
+      <h3 style="margin:0 0 10px 0">Generate with AI</h3>
+      <div class="row">
+        <div>
+          <label>Business input (what should we generate?)</label>
+          <textarea id="aiPrompt" placeholder="Promote my yoga studio's new 6AM class starting Monday. Generate IG captions + email blurb + 3 hooks."></textarea>
+        </div>
+        <div>
+          <label>System style (optional)</label>
+          <textarea id="aiSystem" placeholder="You are a precise, conversion-focused content strategist. Keep copy concise, energetic, and brand-safe."></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Temperature</label>
+          <input id="aiTemp" placeholder="0.7" value="0.7" />
+        </div>
+        <div>
+          <label>Max tokens</label>
+          <input id="aiMax" placeholder="600" value="600" />
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+        <button class="btn" id="aiRun">Generate</button>
+        <div class="spinner" id="aiSpin"></div>
+        <button class="btn alt" id="aiInsert" title="Append to features">Insert → Features</button>
+        <button class="btn alt" id="aiCopy">Copy</button>
+      </div>
+      <div id="aiOut" class="ai-output" style="margin-top:10px"></div>
+    </div>
+
+    <!-- PROJECTS -->
     <div class="card">
       <h3 style="margin:0 0 8px 0">Projects</h3>
       <div class="row row-3">
@@ -113,16 +151,18 @@
         </div>
         <div>
           <label>&nbsp;</label>
-          <button class="btn" id="createProject">Create project</button>
+          <button class="btn" id="projCreateBtn">Create project</button>
         </div>
       </div>
-      <div style="margin-top:10px">
-        <button class="btn" id="listProjects">List (JSON)</button>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <button class="btn alt" id="projListBtn">List (refresh)</button>
+        </div>
       </div>
-      <div id="projectsOut" class="mono" style="margin-top:10px; white-space:pre; overflow:auto"></div>
+      <div id="projectsWrap" class="mono" style="margin-top:10px; white-space:pre-wrap; overflow:auto"></div>
     </div>
 
-    <p class="muted mono">Tip: drag-select and copy your content elsewhere for safekeeping before big edits.</p>
+    <p class="muted mono">Tip: export JSON often if you’re experimenting. You can paste it back later.</p>
   </div>
 
   <script src="/edit/app.js" type="module"></script>
