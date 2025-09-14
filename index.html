@@ -1,29 +1,17 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>VibeScript — Website Builder (MVP)</title>
-
-<!-- Tailwind (CDN for MVP) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- ZIP download -->
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-
-<style>
-  :root{
-    --ring: rgba(255,255,255,.12);
-    --card: rgba(10,12,16,.88);
-    --bg1:#0b1220; --bg2:#111827;
-    --muted:#9aa3b2; --text:#e5e7eb;
-  }
-  body{
-    min-height:100svh;
-    background:
-      radial-gradient(1200px 600px at 50% -10%, #1f2937 0%, transparent 60%),
-      radial-gradient(1000px 600px at 80% 120%, #0b1220 0%, transparent 60%),
-      linear-gradient(180deg, var(--bg1), var(--bg2));
-    color:var(--text);
-  }
-  .card{background:var(--card);border:1px solid var(--ring);
+  <title>VibeScript Builder</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/builder.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>VibeScript Website Builder</h1>
+  </header>
+  <main>
+    <p>Welcome! Use the builder to generate new pages.</p>
+    <button onclick="createPage('About')">Create About Page</button>
+  </main>
+</body>
+</html>
