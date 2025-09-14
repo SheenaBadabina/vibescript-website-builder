@@ -1,35 +1,57 @@
-export interface Env {
-  VIBESCRIPT_PROJECTS: KVNamespace;
-}
+// functions/api/projects.ts
+type Project = {
+  id: string;
+  name: string;
+  status: string;
+  description?: string;
+  createdAt: string;
+};
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
+const KEY = (id: string) => `p:${id}`;
+
+export async function onRequestGet(ctx: EventContext<{
+  VIBESCRIPT_PROJECTS: KVNamespace;
+}>) {
+  const items: Project[] = [];
+  let cursor: string | undefined = undefined;
+  do {
+    const page = await ctx.env.VIBESCRIPT_PROJECTS.list({ prefix: "p:", cursor });
+    for (const k of page.keys) {
+      const raw = await ctx.env.VIBESCRIPT_PROJECTS.get(k.name);
+      if (raw) items.push(JSON.parse(raw));
+    }
+    cursor = page.cursor;
+  } while (cursor);
+  // newest first
+  items.sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
+  return new Response(JSON.stringify(items), {
     headers: { "content-type": "application/json" },
   });
 }
 
-export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
-  const keys = await env.VIBESCRIPT_PROJECTS.list({ prefix: "project:" });
-  const items = await Promise.all(
-    keys.keys.map(async (k) => {
-      const v = await env.VIBESCRIPT_PROJECTS.get(k.name, { type: "json" });
-      return v;
-    })
-  );
-  return json({ items });
-};
-
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-  const input = await request.json();
-  const id = crypto.randomUUID();
-  const rec = {
-    id,
-    name: input.name ?? "Untitled",
-    status: input.status ?? "draft",
-    description: input.description ?? "",
-    createdAt: new Date().toISOString(),
-  };
-  await env.VIBESCRIPT_PROJECTS.put(`project:${id}`, JSON.stringify(rec));
-  return json(rec, 201);
-};
+export async function onRequestPost(ctx: EventContext<{
+  VIBESCRIPT_PROJECTS: KVNamespace;
+}>) {
+  try {
+    const body = (await ctx.request.json()) as Partial<Project>;
+    if (!body.name) throw new Error("name is required");
+    const now = new Date().toISOString();
+    const id = `${Date.now()}`;
+    const proj: Project = {
+      id,
+      name: body.name,
+      status: body.status || "draft",
+      description: body.description || "",
+      createdAt: now,
+    };
+    await ctx.env.VIBESCRIPT_PROJECTS.put(KEY(id), JSON.stringify(proj));
+    return new Response(JSON.stringify({ ok: true, id }), {
+      headers: { "content-type": "application/json" },
+    });
+  } catch (e: any) {
+    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  }
+}
