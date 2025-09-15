@@ -1,81 +1,93 @@
-// _middleware.js
+// functions/_middleware.js
+// TEMP DEBUG VERSION — remove debug bits after verifying
 
 export async function onRequest(context, next) {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  // Only protect the root / and /edit routes
-  if (url.pathname === "/" || url.pathname.startsWith("/edit")) {
-    const submittedToken = url.searchParams.get("key") || (await request.formData().then(f => f.get("token")).catch(() => null));
+  // enable logging only if ?debug=1 is present
+  const DEBUG = url.searchParams.get("debug") === "1";
 
-    if (!submittedToken) {
-      return new Response(renderLogin(""), { status: 401, headers: { "Content-Type": "text/html" } });
+  // Only protect "/" and "/edit"
+  if (url.pathname === "/" || url.pathname.startsWith("/edit")) {
+    // token can arrive via ?key=... or form POST (token=...)
+    let submittedToken = url.searchParams.get("key");
+    if (!submittedToken && request.method === "POST") {
+      try {
+        const form = await request.formData();
+        submittedToken = form.get("token");
+      } catch (_) {}
     }
 
-    const validToken = (await env.VIBESCRIPT_SETTINGS.get("ACCESS_TOKEN"))?.trim();
-    if (submittedToken.trim() === validToken) {
+    const storedTokenRaw = await env.VIBESCRIPT_SETTINGS.get("ACCESS_TOKEN");
+    const storedToken = storedTokenRaw?.trim() ?? "";
+
+    const sToken = (submittedToken ?? "").trim();
+
+    if (DEBUG) {
+      logTokenDiff("submitted", submittedToken);
+      logTokenDiff("submitted-trimmed", sToken);
+      logTokenDiff("stored", storedTokenRaw);
+      logTokenDiff("stored-trimmed", storedToken);
+    }
+
+    if (!sToken) {
+      return html(renderLogin(""), 401);
+    }
+
+    if (sToken === storedToken) {
       return next();
     } else {
-      return new Response(renderLogin("Invalid token. Try again."), { status: 403, headers: { "Content-Type": "text/html" } });
+      return html(renderLogin("Invalid token. Try again."), 403);
     }
   }
 
-  // Pass through for all other routes
   return next();
 }
 
-function renderLogin(message) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>VibeScript Builder</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          display: flex;
-          height: 100vh;
-          align-items: center;
-          justify-content: center;
-          background: #0d1117;
-          color: #fff;
-        }
-        .box {
-          background: #161b22;
-          padding: 2em;
-          border-radius: 8px;
-          text-align: center;
-        }
-        input {
-          padding: 0.5em;
-          margin: 0.5em 0;
-          width: 100%;
-        }
-        button {
-          padding: 0.5em 1em;
-          background: #7c3aed;
-          color: #fff;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-        .error {
-          color: #f87171;
-          margin-top: 1em;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="box">
-        <h1>🔒 VibeScript Builder</h1>
-        <form method="POST">
-          <input type="password" name="token" placeholder="Token" required />
-          <br/>
-          <button type="submit">Continue</button>
-        </form>
-        <div class="error">${message}</div>
-      </div>
-    </body>
-    </html>
-  `;
+function html(body, status = 200) {
+  return new Response(body, {
+    status,
+    headers: { "Content-Type": "text/html; charset=UTF-8" },
+  });
 }
+
+function renderLogin(message) {
+  return `<!doctype html>
+<html><head>
+  <meta charset="utf-8"/>
+  <title>VibeScript Builder</title>
+  <style>
+    body{font-family:Inter,system-ui,Arial;background:#0d1117;color:#fff;
+         height:100vh;display:flex;align-items:center;justify-content:center;margin:0}
+    .box{background:#161b22;padding:24px 28px;border-radius:12px;min-width:320px}
+    h1{margin:0 0 12px 0}
+    input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff}
+    button{margin-top:12px;padding:10px 14px;border:0;border-radius:8px;background:#7c3aed;color:#fff;cursor:pointer}
+    .error{color:#f87171;margin-top:10px;min-height:1.2em}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🔒 VibeScript Builder</h1>
+    <form method="POST">
+      <input type="password" name="token" placeholder="Token" autocomplete="current-password" required />
+      <button type="submit">Continue</button>
+    </form>
+    <div class="error">${message}</div>
+  </div>
+</body></html>`;
+}
+
+/** Debug helper: log length and char codes (first/last few) to spot invisible chars */
+function logTokenDiff(label, value) {
+  const v = value == null ? "" : String(value);
+  const len = v.length;
+  const head = [...v].slice(0, 5).map(cc);
+  const tail = [...v].slice(-5).map(cc);
+  const starts = v.slice(0, 1);
+  const ends = v.slice(-1);
+  console.log(`[token:${label}] len=${len} starts='${safe(starts)}' ends='${safe(ends)}' headCodes=${JSON.stringify(head)} tailCodes=${JSON.stringify(tail)}`);
+}
+function cc(ch){ return ch.charCodeAt(0); }
+function safe(s){ return s.replace(/\n/g,"\\n").replace(/\r/g,"\\r").replace(/\t/g,"\\t"); }
