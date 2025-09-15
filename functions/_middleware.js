@@ -1,166 +1,152 @@
-/**
- * Cloudflare Pages Functions middleware
- * - Protects /edit (and any other protected routes) with a token.
- * - Token is stored in KV: env.VIBESCRIPT_SETTINGS with key "ACCESS_TOKEN".
- * - Accepts token via cookie `vs_token`, query ?token=, header `x-access-token`,
- *   or a POST form to /auth (field name "token").
- * - /logout clears the cookie.
- */
+// /functions/_middleware.js
+// Cloudflare Pages Functions middleware with safe logging
 
-/** @type {PagesFunction<{ VIBESCRIPT_SETTINGS: KVNamespace }>} */
-export const onRequest = async ({ request, env, next }) => {
-  const url = new URL(request.url);
+const TOKEN_KV_KEY = "ACCESS_TOKEN";
+const AUTH_COOKIE = "vs_auth";
+const AUTH_MAX_AGE = 60 * 60 * 6; // 6 hours
+const PROTECTED_PATHS = ["/edit", "/save", "/api"]; // add more protected roots if needed
 
-  // 1) Fetch the expected token from KV
-  const expected = (await env.VIBESCRIPT_SETTINGS.get("ACCESS_TOKEN")) || "";
-  // If no token configured in KV, fail closed (every token will be invalid)
-  const hasConfiguredToken = expected.length > 0;
-
-  // 2) Helper: read incoming token from various places
-  const incomingFromCookie = getCookie(request.headers.get("Cookie") || "", "vs_token");
-  const incomingFromQuery  = url.searchParams.get("token") || "";
-  const incomingFromHeader = request.headers.get("x-access-token") || "";
-  let incoming = incomingFromCookie || incomingFromQuery || incomingFromHeader || "";
-
-  // 3) Handle POST /auth (form submit with { token })
-  if (url.pathname === "/auth" && request.method.toUpperCase() === "POST") {
-    const form = await readForm(request);
-    const typed = (form.get("token") || "").toString().trim();
-    const ok = hasConfiguredToken && timingSafeEqual(typed, expected);
-
-    if (!ok) {
-      return json({ ok: false, error: "invalid_token" }, 401);
-    }
-
-    // Set cookie then redirect back to /edit
-    const headers = new Headers({
-      "Set-Cookie": buildCookie("vs_token", typed, { maxAge: 60 * 60 * 24 * 30 }), // 30 days
-      "Location": "/edit"
-    });
-    return new Response(null, { status: 302, headers });
-  }
-
-  // 4) Handle /logout
-  if (url.pathname === "/logout") {
-    const headers = new Headers({
-      "Set-Cookie": buildCookie("vs_token", "", { maxAge: 0 }),
-      "Location": "/"
-    });
-    return new Response(null, { status: 302, headers });
-  }
-
-  // 5) Define protected paths
-  const PROTECTED = ["/edit", "/projects", "/api/secure"];
-  const needsAuth = PROTECTED.some(p =>
-    url.pathname === p || url.pathname.startsWith(p + "/")
-  );
-
-  if (!needsAuth) {
-    // Public routes pass through
-    return next();
-  }
-
-  // 6) If token is in query, promote it to cookie
-  if (incomingFromQuery) {
-    const headers = new Headers({
-      "Set-Cookie": buildCookie("vs_token", incomingFromQuery, { maxAge: 60 * 60 * 24 * 30 }),
-      "Location": url.pathname // clean the URL
-    });
-    return new Response(null, { status: 302, headers });
-  }
-
-  // 7) Validate token
-  const valid = hasConfiguredToken && incoming && timingSafeEqual(incoming, expected);
-
-  if (!valid) {
-    // Show minimal HTML login (works even if the UI page isn’t loaded)
-    return htmlLogin(401);
-  }
-
-  // 8) All good
-  return next();
-};
-
-/* ----------------- helpers ----------------- */
-
-function getCookie(header, name) {
-  const cookies = (header || "").split(/;\s*/);
-  for (const c of cookies) {
-    const idx = c.indexOf("=");
-    if (idx === -1) continue;
-    const k = c.slice(0, idx).trim();
-    const v = c.slice(idx + 1).trim();
-    if (k === name) return decodeURIComponent(v);
-  }
-  return "";
+/** Utility: read cookie by name */
+function getCookie(req, name) {
+  const cookie = req.headers.get("Cookie") || "";
+  const match = cookie.match(new RegExp(`(?:^|; )${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
-function buildCookie(name, value, { maxAge = 0 }) {
+/** Utility: set cookie header */
+function setCookie(name, value, { maxAge = AUTH_MAX_AGE, path = "/", secure = true } = {}) {
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
-    "Path=/",
+    `Path=${path}`,
+    `Max-Age=${maxAge}`,
+    "HttpOnly",
     "SameSite=Lax",
-    "Secure" // Pages is HTTPS
   ];
-  if (maxAge >= 0) parts.push(`Max-Age=${maxAge}`);
+  if (secure) parts.push("Secure");
   return parts.join("; ");
 }
 
-async function readForm(request) {
-  const ct = request.headers.get("content-type") || "";
-  if (ct.includes("application/json")) {
-    const body = await request.json().catch(() => ({}));
-    const fd = new FormData();
-    Object.entries(body).forEach(([k, v]) => fd.set(k, String(v)));
-    return fd;
-  }
-  // handles form-urlencoded & multipart
-  return request.formData();
+/** Utility: delete cookie */
+function deleteCookie(name) {
+  return `${name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax; Secure`;
 }
 
-function json(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8" }
-  });
-}
-
-function htmlLogin(status = 401) {
-  const html = `<!doctype html>
-<html lang="en"><meta charset="utf-8"/>
+/** Render a minimal login page with optional error */
+function loginPage({ showError = false } = {}) {
+  const err = showError
+    ? `<p style="color:#f88; margin-top:12px;">Invalid token. Try again.</p>`
+    : "";
+  return new Response(
+    `<!doctype html>
+<html><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>VibeScript Builder – Sign in</title>
+<title>VibeScript Builder – Login</title>
 <style>
-  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1220;color:#e6e6f0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .card{background:#0f172a;border:1px solid #24324a;border-radius:16px;padding:28px;max-width:480px;width:92%}
-  h1{font-size:28px;margin:0 0 12px}
-  p{opacity:.9;margin:0 0 16px}
-  input,button{font-size:16px}
-  input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:#e6e6f0;outline:none}
-  button{margin-top:12px;width:100%;padding:12px;border-radius:10px;border:0;background:#7c3aed;color:white;font-weight:600}
-  .err{color:#fda4af;margin-top:8px}
+  body{background:#0b1320;color:#fff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;display:grid;place-items:center;height:100vh}
+  .card{background:#101a2f;border:1px solid #243056;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.35);width:min(420px,92vw)}
+  h1{margin:0 0 12px;font-size:26px}
+  label{display:block;margin:12px 0 6px;color:#aab8e6}
+  input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2b3b64;background:#0e1730;color:#fff;outline:none}
+  button{margin-top:16px;width:100%;padding:12px 16px;border:0;border-radius:10px;background:#7c4dff;color:#fff;font-weight:600}
 </style>
-<div class="card">
-  <h1>🔒 VibeScript Builder</h1>
-  <p>Enter your access token to continue.</p>
-  <form method="post" action="/auth">
-    <input name="token" type="password" placeholder="token" autocomplete="one-time-code" required />
+</head>
+<body>
+  <form class="card" method="POST" action="/login">
+    <h1>🔒 VibeScript Builder</h1>
+    <label for="token">Token</label>
+    <input id="token" name="token" type="password" autocomplete="one-time-code" />
     <button type="submit">Continue</button>
+    ${err}
   </form>
-  <div class="err">${status === 401 ? "Invalid or missing token." : ""}</div>
-</div>
-</html>`;
-  return new Response(html, { status, headers: { "content-type": "text/html; charset=utf-8" } });
+</body></html>`,
+    { headers: { "content-type": "text/html; charset=utf-8" } }
+  );
 }
 
-/**
- * Constant-time string compare to avoid timing side-channels.
- * Treats empty strings as non-matches.
- */
-function timingSafeEqual(a, b) {
-  if (!a || !b) return false;
-  if (a.length !== b.length) return false;
-  let out = 0;
-  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return out === 0;
+/** Middleware entry */
+export async function onRequest(context) {
+  const { request, env, next } = context;
+  const url = new URL(request.url);
+  const path = url.pathname;
+
+  // Simple health/ping
+  if (path === "/ping") {
+    return new Response("ok", { status: 200 });
+  }
+
+  // Login handler (POST)
+  if (path === "/login" && request.method === "POST") {
+    try {
+      const form = await request.formData();
+      const userToken = (form.get("token") || "").trim();
+
+      // Pull token from KV (do NOT log the actual value)
+      const kvToken = ((await env.VIBESCRIPT_SETTINGS.get(TOKEN_KV_KEY)) || "").trim();
+
+      // Safe logs
+      console.log(
+        JSON.stringify({
+          where: "login",
+          gotFormTokenLength: userToken.length,
+          hasKvToken: kvToken.length > 0,
+          kvKey: TOKEN_KV_KEY,
+          bindingPresent: typeof env.VIBESCRIPT_SETTINGS !== "undefined",
+        })
+      );
+
+      if (kvToken && userToken && userToken === kvToken) {
+        const headers = new Headers({ Location: "/edit" });
+        headers.append("Set-Cookie", setCookie(AUTH_COOKIE, "1"));
+        return new Response(null, { status: 302, headers });
+      }
+
+      // Invalid
+      const headers = new Headers({ Location: "/login?err=1" });
+      return new Response(null, { status: 302, headers });
+    } catch (err) {
+      console.error("login_error", err?.message || err);
+      return new Response("Login error", { status: 500 });
+    }
+  }
+
+  // Login page (GET)
+  if (path === "/login" && request.method === "GET") {
+    return loginPage({ showError: url.searchParams.get("err") === "1" });
+  }
+
+  // Logout
+  if (path === "/logout") {
+    const headers = new Headers({ Location: "/login" });
+    headers.append("Set-Cookie", deleteCookie(AUTH_COOKIE));
+    return new Response(null, { status: 302, headers });
+  }
+
+  // Protect selected paths
+  const needsAuth = PROTECTED_PATHS.some((p) => path === p || path.startsWith(p + "/"));
+  if (needsAuth) {
+    const authed = getCookie(request, AUTH_COOKIE) === "1";
+
+    // Extra guard: also allow direct token via query ?token=... (handy for first-time)
+    const qsToken = (url.searchParams.get("token") || "").trim();
+    if (!authed) {
+      try {
+        const kvToken = ((await env.VIBESCRIPT_SETTINGS.get(TOKEN_KV_KEY)) || "").trim();
+        if (qsToken && kvToken && qsToken === kvToken) {
+          const headers = new Headers({ Location: path }); // refresh same page without token in URL
+          headers.append("Set-Cookie", setCookie(AUTH_COOKIE, "1"));
+          return new Response(null, { status: 302, headers });
+        }
+      } catch (e) {
+        console.error("auth_qs_check_error", e?.message || e);
+      }
+    }
+
+    if (!authed) {
+      const headers = new Headers({ Location: "/login" });
+      return new Response(null, { status: 302, headers });
+    }
+  }
+
+  // Continue to the requested asset/function
+  return next();
 }
