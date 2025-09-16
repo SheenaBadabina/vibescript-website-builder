@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript Builder — App</title>
+  <link rel="icon" href="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" type="image/png" />
+  <style>
+    :root{--bg:#0a0c10;--card:#0f1218;--text:#eef3ff;--muted:#9fb0c8;--ring:rgba(255,255,255,.18)}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{min-height:100%;display:grid;place-items:center;padding:16px}
+    .card{width:min(920px,100%);background:var(--card);border:1px solid rgba(159,176,200,.16);border-radius:16px;padding:18px}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid rgba(159,176,200,.28);background:#121826;color:#fff;text-decoration:none;font-weight:800}
+    .btn:hover{background:#182030}
+    .muted{color:var(--muted)}
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>VibeScript Builder</h1>
+      <p class="muted">You’re signed in.</p>
+      <pre id="me" style="white-space:pre-wrap;background:#0c1117;border-radius:12px;padding:12px;overflow:auto"></pre>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn" href="/" aria-label="Back to sign in">Back to sign in</a>
+        <button class="btn" id="signout">Sign out</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    const sb = supabase.createClient("${SUPABASE_URL}", "${SUPABASE_ANON_KEY}");
+    (async ()=>{
+      const { data:{ session } } = await sb.auth.getSession();
+      if(!session){ location.replace("/"); return; }
+      const profile = {
+        user: session.user,
+        provider: session.user.app_metadata?.provider || "password",
+        email_confirmed_at: session.user.email_confirmed_at
+      };
+      document.getElementById('me').textContent = JSON.stringify(profile,null,2);
+    })();
+    document.getElementById('signout').onclick = async ()=>{
+      await sb.auth.signOut();
+      location.replace("/");
+    };
+  </script>
+</body>
+</html>
