@@ -7,26 +7,24 @@
   <meta name="description" content="Sign in to VibeScript Builder with email/password or Google." />
   <link rel="icon" href="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" type="image/png" />
   <style>
-    :root{--bg:#0a0c10;--card:#0f1218;--text:#eef3ff;--muted:#9fb0c8;--ring:rgba(255,255,255,.18);
-      --r:#ef4444;--o:#f97316;--y:#eab308;--g:#22c55e;--b:#3b82f6;--i:#6366f1;--v:#8b5cf6}
+    :root{--bg:#0a0c10;--card:#0f1218;--text:#eef3ff;--muted:#9fb0c8;--r:#ef4444;--o:#f97316;--y:#eab308;--g:#22c55e;--b:#3b82f6;--i:#6366f1;--v:#8b5cf6}
     *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55}
     .wrap{min-height:100%;display:grid;place-items:center;padding:16px}
-    .card{width:min(480px,100%);background:var(--card);border:1px solid rgba(159,176,200,.16);border-radius:16px;padding:18px;box-shadow:0 10px 26px rgba(0,0,0,.28)}
+    .card{width:min(480px,100%);background:#0f1218;border:1px solid rgba(159,176,200,.16);border-radius:16px;padding:18px;box-shadow:0 10px 26px rgba(0,0,0,.28)}
     h1{margin:.2em 0 .4em;font-size:clamp(22px,6vw,28px);letter-spacing:-.01em}
     label{display:block;font-size:14px;color:var(--muted);margin:8px 0 6px}
-    input{width:100%;background:#0c1117;color:var(--text);border:1px solid rgba(159,176,200,.26);border-radius:12px;padding:12px 14px;font-size:16px}
+    input{width:100%;background:#0c1117;color:#eef3ff;border:1px solid rgba(159,176,200,.26);border-radius:12px;padding:12px 14px;font-size:16px}
     input:focus-visible{outline:none;border-color:var(--b);box-shadow:0 0 0 4px rgba(59,130,246,.25)}
     .row{display:grid;gap:10px}
     .btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:12px;border:1px solid rgba(159,176,200,.28);background:#121826;color:#fff;font-weight:800;cursor:pointer}
     .btn:hover{background:#182030}
     .btn-cta{border:0;background:linear-gradient(90deg,var(--r),var(--o),var(--y),var(--g),var(--b),var(--i),var(--v));background-size:200% 100%}
     .btn-cta:hover{background-position:100% 0}
-    .muted{color:var(--muted);font-size:13px}
+    .muted{color:#9fb0c8;font-size:13px}
     .status{margin-top:10px;font-size:14px}
     .ok{color:#86efac}.err{color:#fca5a5}
   </style>
-  <!-- Supabase JS (CDN) -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -62,17 +60,12 @@
   </main>
 
   <script>
-    // env from Cloudflare Pages
-    const SUPABASE_URL = (window.SUPABASE_URL || "${SUPABASE_URL}").replace("${SUPABASE_URL}","") || (typeof SUPABASE_URL!=="undefined"?SUPABASE_URL:"");
-    const SUPABASE_ANON_KEY = (window.SUPABASE_ANON_KEY || "${SUPABASE_ANON_KEY}").replace("${SUPABASE_ANON_KEY}","") || (typeof SUPABASE_ANON_KEY!=="undefined"?SUPABASE_ANON_KEY:"");
-
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-    });
-
+    const sb = supabase.createClient("${SUPABASE_URL}", "${SUPABASE_ANON_KEY}", { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }});
     const $ = (id)=>document.getElementById(id);
     const statusEl = $("status");
     function setStatus(msg, ok){ statusEl.className = "status " + (ok ? "ok" : "err"); statusEl.textContent = msg; }
+
+    async function goCallback() { location.href = "/auth/callback.html"; }
 
     $("btn-signin").onclick = async ()=>{
       const email = $("email").value.trim(), password = $("password").value;
@@ -80,29 +73,27 @@
       setStatus("Signing in…");
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if(error) return setStatus(error.message, false);
-      location.href = "/app/";
+      goCallback();
     };
 
     $("btn-signup").onclick = async ()=>{
       const email = $("email").value.trim(), password = $("password").value;
       if(!email || !password) return setStatus("Enter email and password.", false);
       setStatus("Creating account… check your inbox to confirm.");
-      const { error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + "/app/" }});
+      const { error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + "/auth/callback.html" }});
       if(error) return setStatus(error.message, false);
-      setStatus("Account created. Please confirm via email, then return here.", true);
+      setStatus("Account created. Please confirm via email.", true);
     };
 
     $("btn-google").onclick = async ()=>{
       setStatus("Opening Google…");
-      const { data, error } = await sb.auth.signInWithOAuth({
+      const { error } = await sb.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: location.origin + "/app/" }
+        options: { redirectTo: location.origin + "/auth/callback.html" }
       });
       if(error) return setStatus(error.message, false);
-      // Supabase will redirect
     };
 
-    // If already logged in, jump to app
     (async ()=>{
       const { data:{ session } } = await sb.auth.getSession();
       if(session) location.replace("/app/");
