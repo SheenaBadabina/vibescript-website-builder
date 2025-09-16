@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript Builder — Preview</title>
+  <meta name="description" content="Sneak peek of the VibeScript Builder after login." />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" type="image/png" />
+  <style>
+    :root{
+      --bg:#090b10;--bg2:#0c1117;--card:#0f141b;--muted:#9fb0c8;--text:#eef3ff;
+      --r:#ef4444;--o:#f97316;--y:#eab308;--g:#22c55e;--b:#3b82f6;--i:#6366f1;--v:#8b5cf6;
+      --ring:rgba(255,255,255,.14);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--text);background:radial-gradient(1200px 800px at 50% -10%,#1b1030 0%,#0a0c10 45%,#07080c 100%);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;
+    }
+    /* layout */
+    .app{min-height:100%;display:grid;grid-template-rows:auto 1fr}
+    header{
+      position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+      background:color-mix(in oklab, #0a0c10 86%, transparent);border-bottom:1px solid rgba(159,176,200,.12)
+    }
+    .bar{display:flex;align-items:center;gap:12px;max-width:1120px;margin:0 auto;padding:10px 14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand img{width:28px;height:28px;border-radius:8px}
+    .brand strong{font-weight:900;letter-spacing:.2px}
+    .pill{
+      padding:6px 10px;border-radius:999px;background:#121826;border:1px solid rgba(159,176,200,.18);color:#fff;font-weight:700;font-size:13px
+    }
+    .cta{
+      margin-left:auto;border:0;border-radius:12px;padding:10px 14px;
+      background:linear-gradient(90deg,var(--r),var(--o),var(--y),var(--g),var(--b),var(--i),var(--v));
+      color:#fff;font-weight:900
+    }
+    main{max-width:1120px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    /* panels */
+    .panel{
+      background:var(--card);border:1px solid rgba(159,176,200,.14);border-radius:16px;padding:14px;
+      box-shadow:0 10px 28px rgba(0,0,0,.28)
+    }
+    h1{margin:.2em 0 .4em;font-size:clamp(22px,6vw,28px);letter-spacing:-.01em}
+    h2{margin:0 0 8px;font-size:18px}
+    p{margin:.4em 0;color:var(--muted)}
+    .grid{display:grid;gap:14px}
+    @media(min-width:860px){ .grid{grid-template-columns:1.2fr .8fr} }
+    input, textarea, select{
+      width:100%;background:#0c1117;color:#eef3ff;border:1px solid rgba(159,176,200,.26);
+      border-radius:12px;padding:12px 14px;font-size:16px
+    }
+    textarea{min-height:120px;resize:vertical}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:12px;border:1px solid rgba(159,176,200,.28);background:#121826;color:#fff;font-weight:800;cursor:pointer}
+    .btn:hover{background:#182030}
+    .btn-cta{border:0;background:linear-gradient(90deg,var(--r),var(--o),var(--y),var(--g),var(--b),var(--i),var(--v));background-size:200% 100%}
+    .btn-cta:hover{background-position:100% 0}
+    .row{display:grid;gap:10px}
+    .muted{color:var(--muted)}
+    .list{display:grid;gap:8px}
+    .cardItem{padding:10px;border-radius:12px;background:#0c1117;border:1px solid rgba(159,176,200,.18)}
+    footer{max-width:1120px;margin:24px auto;padding:0 16px 28px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="bar">
+        <div class="brand">
+          <img src="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" alt="VibeScript" onerror="this.style.display='none'">
+          <strong>VibeScript</strong><span class="pill">Builder (preview)</span>
+        </div>
+        <button class="cta">New Project</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h1>Speak a website into existence</h1>
+        <p class="muted">Describe your idea and the builder will generate pages, styles, and launch-ready content.</p>
+        <div class="row" style="margin-top:10px">
+          <label for="prompt" class="muted">Your prompt</label>
+          <textarea id="prompt" placeholder="Example: A clean site for a yoga studio in Austin. Home, About, Classes, Schedule, Pricing. Friendly colors, chakra accents."></textarea>
+          <div class="row" style="grid-template-columns:1fr auto;align-items:center">
+            <select id="intent">
+              <option value="website">Full website</option>
+              <option value="landing">Landing page</option>
+              <option value="campaign">Marketing campaign</option>
+            </select>
+            <button class="btn btn-cta" id="btn-generate">Generate</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>Project drafts</h2>
+          <div class="list" id="drafts">
+            <div class="cardItem">
+              <strong>Yoga Studio — Landing</strong>
+              <p class="muted">Hero, features, class schedule, Mailchimp capture.</p>
+            </div>
+            <div class="cardItem">
+              <strong>Bakery — Full site</strong>
+              <p class="muted">Home, Menu, Order online, Instagram feed, email follow-up.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent activity</h2>
+          <div class="list">
+            <div class="cardItem">Deployed “VibeScript Demo” to preview · <span class="muted">2m ago</span></div>
+            <div class="cardItem">Generated email sequence for “Yoga Studio” · <span class="muted">18m ago</span></div>
+            <div class="cardItem">Imported brand palette · <span class="muted">1h ago</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      © 2025 VibeScript. Preview UI only — auth & generation not wired on this page.
+    </footer>
+  </div>
+
+  <script>
+    // demo-only: fake “generate” feedback
+    document.getElementById('btn-generate').onclick = () => {
+      const t = document.getElementById('prompt').value.trim() || 'Untitled project';
+      const intent = document.getElementById('intent').value;
+      const el = document.createElement('div');
+      el.className = 'cardItem';
+      el.innerHTML = `<strong>${t.slice(0,80)}</strong><p class="muted">Queued: ${intent}. Preview will appear here after generation.</p>`;
+      document.getElementById('drafts').prepend(el);
+      document.getElementById('prompt').value = '';
+    };
+  </script>
+</body>
+</html>
