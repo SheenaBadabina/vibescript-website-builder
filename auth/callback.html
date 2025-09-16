@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript — Auth</title>
+  <meta name="color-scheme" content="dark" />
+  <style>
+    :root{--bg:#0a0c10;--text:#eef3ff;--muted:#9fb0c8}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{min-height:100svh;display:grid;place-items:center;padding:16px}
+    .box{max-width:460px;width:100%;padding:16px;border-radius:16px;background:#0f1218;border:1px solid rgba(159,176,200,.16)}
+    .muted{color:var(--muted)}
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <main class="wrap">
+    <section class="box">
+      <h1>Signing you in…</h1>
+      <p class="muted" id="s">Finalizing session.</p>
+    </section>
+  </main>
+  <script>
+    const sb = supabase.createClient("${SUPABASE_URL}", "${SUPABASE_ANON_KEY}", { auth: { persistSession: true }});
+    (async ()=>{
+      try {
+        const { data:{ session } } = await sb.auth.getSession();
+        if(!session){ document.getElementById('s').textContent = "No session found — returning to sign-in."; setTimeout(()=>location.replace("/"), 800); return; }
+        const token = session.access_token;
+        const exp = session.expires_at || Math.floor(Date.now()/1000) + 3600;
+        await fetch("/api/session", {
+          method: "POST",
+          headers: { "content-type":"application/json" },
+          body: JSON.stringify({ token, expiresAt: exp })
+        });
+        location.replace("/app/");
+      } catch {
+        location.replace("/");
+      }
+    })();
+  </script>
+</body>
+</html>
