@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>VibeScript — OAuth Diagnostic</title>
+  <meta name="color-scheme" content="dark"/>
+  <style>
+    :root{--bg:#0b1220;--card:#111a2a;--text:#e8eefc;--muted:#9fb0c8;--ring:rgba(255,255,255,.12)}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;min-height:100svh;display:grid;place-items:center;background:var(--bg);color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .card{width:min(580px,92vw);background:var(--card);border:1px solid var(--ring);border-radius:16px;
+      padding:22px;box-shadow:0 10px 36px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:22px}
+    p{margin:0 0 12px;color:var(--muted)}
+    button{appearance:none;border:0;cursor:pointer;border-radius:12px;padding:14px 16px;font-weight:800;font-size:16px;width:100%}
+    .google{background:#fff;color:#111}
+    pre{background:#0e1729;border:1px solid var(--ring);border-radius:12px;padding:12px;white-space:pre-wrap;overflow:auto}
+    .row{display:grid;gap:10px;margin-top:12px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>OAuth Diagnostic</h1>
+    <p>This test bypasses our JS flow and goes straight to Supabase’s Google OAuth.</p>
+    <div class="row">
+      <button id="btn" class="google">Continue with Google (Direct)</button>
+      <div id="out"></div>
+    </div>
+  </main>
+  <script>
+    const out = document.getElementById("out");
+    const log = (o)=>{ out.innerHTML = "<pre>"+(typeof o==="string"?o:JSON.stringify(o,null,2))+"</pre>"; };
+
+    document.getElementById("btn").onclick = async ()=>{
+      try{
+        log("Loading /api/public-env…");
+        const cfg = await fetch("/api/public-env",{cache:"no-store"}).then(r=>r.json());
+        if(!cfg?.url) { log("Missing Supabase URL from /api/public-env"); return; }
+        // Build authorize URL dynamically from your live Supabase project ref
+        const redirect = new URL("/auth/callback.html", window.location.origin).toString();
+        const authUrl = new URL("/auth/v1/authorize", cfg.url);
+        authUrl.searchParams.set("provider","google");
+        authUrl.searchParams.set("redirect_to", redirect);
+        log({ supabase_url: cfg.url, redirect_to: redirect, authorize: authUrl.toString() });
+        // Navigate directly – if nothing happens, it’s a browser popup blocker or wrong Google/Supabase config
+        window.location.href = authUrl.toString();
+      }catch(e){
+        log("Error: " + (e?.message || e));
+      }
+    };
+  </script>
+</body>
+</html>
