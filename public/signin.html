@@ -24,7 +24,6 @@
   <main class="card">
     <h1>Sign in to VibeScript</h1>
     <p>Use your Google account to continue.</p>
-
     <button id="google" class="google">Continue with Google</button>
     <div id="status" class="status" aria-live="polite"></div>
   </main>
@@ -32,13 +31,13 @@
   <script>
     const $ = (id)=>document.getElementById(id);
     const setStatus = (m)=>{$("status").textContent=m||"";}
-
     let sb;
+
     (async ()=>{
       try{
         setStatus("Loading…");
         const cfg = await fetch("/api/public-env", { cache:"no-store" }).then(r=>r.json());
-        if(!cfg || !cfg.url || !cfg.anon){ setStatus("Missing Supabase config. Check Cloudflare variables."); return; }
+        if(!cfg || !cfg.url || !cfg.anon){ setStatus("Missing Supabase config."); return; }
         sb = supabase.createClient(cfg.url, cfg.anon, { auth:{ persistSession:true, detectSessionInUrl:true, autoRefreshToken:true }});
         setStatus("");
       }catch(e){
@@ -46,12 +45,25 @@
       }
     })();
 
-    $("google").addEventListener("click", async ()=>{
+    document.getElementById("google").addEventListener("click", async ()=>{
       if(!sb){ setStatus("Supabase not ready."); return; }
-      setStatus("Opening Google…");
-      const redirectTo = location.origin + "/auth/callback.html";
-      const { error } = await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo }});
-      if(error){ setStatus(error.message || "OAuth error."); }
+      try{
+        setStatus("Opening Google…");
+        // Force manual redirect (fixes “nothing happens”)
+        const redirectTo = location.origin + "/auth/callback.html";
+        const { data, error } = await sb.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo, skipBrowserRedirect: true }
+        });
+        if (error) { setStatus(error.message || "OAuth error."); return; }
+        if (data && data.url) {
+          window.location.href = data.url; // ← explicit navigation
+          return;
+        }
+        setStatus("No redirect URL returned.");
+      }catch(err){
+        setStatus("Signin failed: " + (err.message || err));
+      }
     });
   </script>
 </body>
