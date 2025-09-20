@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Authenticating…</title>
+  <meta name="color-scheme" content="dark" />
+  <style>
+    body{margin:0;min-height:100svh;display:grid;place-items:center;
+      background:#0b1220;color:#e8eefc;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <div>Finishing sign-in…</div>
+  <script>
+    (async ()=>{
+      try{
+        const cfg = await fetch("/api/public-env", { cache:"no-store" }).then(r=>r.json());
+        const sb = supabase.createClient(cfg.url, cfg.anon);
+        const { error } = await sb.auth.exchangeCodeForSession(window.location.href);
+        if(error){
+          alert("Sign-in error: " + error.message);
+          window.location.replace("/signin.html");
+          return;
+        }
+        // ✅ Redirect to app after login
+        window.location.replace("/app/");
+      }catch(e){
+        window.location.replace("/signin.html");
+      }
+    })();
+  </script>
+</body>
+</html>
