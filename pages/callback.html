@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finishing sign-in…</title>
+  <style>
+    body{margin:0;display:grid;place-items:center;height:100dvh;background:#0b1020;color:#e7e9f4;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    .card{max-width:560px;width:92vw;background:#121938;border:1px solid #24305a;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+    .sp{width:36px;height:36px;border:4px solid #24305a;border-top-color:#8b80ff;border-radius:50%;animation:spin 1s linear infinite;margin-right:12px}
+    .row{display:flex;align-items:center;gap:12px}
+    .muted{opacity:.8;margin-top:8px;font-size:14px}
+    .err{color:#ffb4c8;margin-top:12px;word-break:break-word}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="card">
+    <div class="row">
+      <div class="sp"></div>
+      <h1>Finishing sign-in…</h1>
+    </div>
+    <p class="muted">Please wait while we verify your account and set your session.</p>
+    <p id="err" class="err" hidden></p>
+  </div>
+
+  <script>
+    (async () => {
+      try {
+        // Fetch public env from your existing API route
+        const env = await fetch('/api/public-env', { credentials: 'omit' }).then(r => r.json());
+
+        if (!env?.SUPABASE_URL || !env?.SUPABASE_ANON_KEY) {
+          throw new Error('Missing Supabase env. Check /functions/api/public-env.* and Cloudflare variables.');
+        }
+
+        const supabase = window.supabase.createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+
+        // Support both PKCE (?code=) and hash-based callbacks
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession({ code });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+          if (error) throw error;
+        }
+
+        // Redirect into the app after session is set
+        window.location.replace('/builder.html'); // change if your app entry is different
+      } catch (err) {
+        const el = document.getElementById('err');
+        el.textContent = err?.message || String(err);
+        el.hidden = false;
+      }
+    })();
+  </script>
+</body>
+</html>
