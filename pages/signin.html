@@ -1,0 +1,16 @@
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const env = await fetch('/api/public-env').then(r => r.json());
+  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+
+  document.getElementById('google').addEventListener('click', async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://builder.vibescript.online/auth/v1/callback',
+        queryParams: { access_type: 'offline', prompt: 'consent' }
+      }
+    });
+  });
+</script>
