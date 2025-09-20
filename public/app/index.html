@@ -1,125 +1,300 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VibeScript — App</title>
-  <meta name="color-scheme" content="dark" />
-  <link rel="icon" href="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" type="image/png" />
-  <style>
-    :root{--bg:#0b1220;--bg2:#0e1729;--card:#111a2a;--text:#e8eefc;--muted:#a9b4ce;--ring:rgba(255,255,255,.12)}
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;background:radial-gradient(1200px 800px at 50% -15%,#1b1030 0%,#0b1220 55%,#070b14 100%) fixed;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    .shell{min-height:100%;display:grid;grid-template-rows:auto 1fr}
-    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:color-mix(in oklab,#0b1220 86%, transparent);border-bottom:1px solid var(--ring)}
-    .bar{max-width:1120px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:28px;height:28px;border-radius:7px;object-fit:cover}
-    .grow{margin-left:auto}
-    .btn{appearance:none;border:1px solid var(--ring);background:#121b2d;color:#fff;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
-    .btn:hover{background:#172238}
-    main{max-width:1120px;margin:0 auto;padding:16px;display:grid;gap:14px}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.28)}
-    h1{margin:.2em 0 .4em;font-size:clamp(22px,7vw,30px)}
-    .muted{color:var(--muted)}
-    pre{white-space:pre-wrap;background:#0e1729;border:1px solid var(--ring);border-radius:12px;padding:12px;overflow:auto}
-    .grid{display:grid;gap:12px}
-    @media(min-width:900px){ .grid{grid-template-columns:1.1fr .9fr} }
-    /* chakra accent for primary action */
-    .btn-cta{border:0;background:linear-gradient(90deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#6366f1,#8b5cf6);background-size:200% 100%}
-    .btn-cta:hover{background-position:100% 0}
-  </style>
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VibeScript — Builder</title>
+<meta name="color-scheme" content="dark" />
+<link rel="icon" href="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" type="image/png" />
+<style>
+:root{
+  --bg:#0b1220;--panel:#111a2a;--muted:#9fb0c8;--ring:rgba(255,255,255,.12);--text:#e8eefc;
+  --chakra:linear-gradient(90deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#6366f1,#8b5cf6);
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:radial-gradient(1200px 800px at 50% -20%,#1b1030 0%,#0b1220 55%,#070b14 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.app{min-height:100%;display:grid;grid-template-rows:auto 1fr}
+header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:color-mix(in oklab,#0b1220 86%,transparent);border-bottom:1px solid var(--ring)}
+.bar{max-width:1200px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:28px;height:28px;border-radius:7px;object-fit:cover}
+h1{font-size:clamp(18px,4vw,22px);margin:0}
+main{max-width:1200px;margin:0 auto;padding:12px;display:grid;gap:12px}
+.grid{display:grid;gap:12px}
+@media(min-width:1024px){.grid{grid-template-columns: 520px 1fr}}
+.card{background:var(--panel);border:1px solid var(--ring);border-radius:16px;padding:14px}
+label{color:var(--muted);font-size:13px}
+textarea, input, select{width:100%;background:#0d1524;color:#fff;border:1px solid var(--ring);border-radius:12px;padding:12px 14px;font-size:15px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.25)}
+.row{display:grid;gap:10px}
+.btn{appearance:none;border:1px solid var(--ring);background:#121b2d;color:#fff;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;text-align:center}
+.btn:hover{background:#172238}
+.btn-cta{border:0;background:var(--chakra);background-size:200% 100%}
+.btn-cta:hover{background-position:100% 0}
+small.muted{color:var(--muted)}
+.status{font-size:14px;color:var(--muted);margin-top:6px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.toggle-row{display:flex;flex-wrap:wrap;gap:8px}
+.toggle{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--ring);padding:8px 10px;border-radius:10px;background:#0e1729}
+.preview{background:#0a0f1e;border:1px solid var(--ring);border-radius:16px;overflow:hidden;height:min(75vh,820px)}
+iframe{width:100%;height:100%;border:0;background:#fff}
+.help{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;border:1px solid var(--ring);padding:6px 10px;border-radius:999px;background:#0e1729;font-size:12px;color:#c1cbe0}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div class="shell">
-    <header>
-      <div class="bar">
-        <div class="brand">
-          <img class="logo" src="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" alt="VibeScript" onerror="this.style.display='none'">
-          <strong>VibeScript</strong>
-        </div>
-        <div class="grow"></div>
-        <button id="signout" class="btn">Sign out</button>
+<div class="app">
+  <header>
+    <div class="bar">
+      <div class="brand">
+        <img src="https://vibescript.online/assets/file_0000000034986115891169618f3eb38a.png" alt="VibeScript" onerror="this.style.display='none'">
+        <h1>VibeScript Builder</h1>
       </div>
-    </header>
+      <div style="margin-left:auto" class="toolbar">
+        <button id="btnProjects" class="btn">My Projects</button>
+        <button id="btnSignOut" class="btn">Sign out</button>
+      </div>
+    </div>
+  </header>
 
-    <main>
+  <main>
+    <div class="grid">
       <section class="card">
-        <p class="muted" style="font-weight:800;letter-spacing:.14em;margin:0 0 6px">WELCOME</p>
-        <h1>You're signed in</h1>
-        <p class="muted">Below is your session info (email, provider). From here we’ll add the voice-first builder UI.</p>
-        <pre id="me">Loading…</pre>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-          <a href="/signin.html" class="btn">Back to sign-in</a>
-          <a href="/app/builder-preview.html" class="btn btn-cta">Open Builder Preview</a>
+        <div class="row">
+          <label for="prompt">Describe your site (or use the mic):</label>
+          <textarea id="prompt" rows="6" placeholder="Example: A luxury yoga studio in Sedona with online class booking, bold hero video, testimonials, and a pricing table."></textarea>
+          <div class="toolbar">
+            <button id="btnMic" class="btn" aria-pressed="false">🎙️ Record</button>
+            <button id="btnIdeas" class="btn">Quick ideas</button>
+            <button id="btnClear" class="btn">Clear</button>
+          </div>
+          <div class="status" id="micStatus"></div>
         </div>
-      </section>
 
-      <section class="grid">
-        <div class="card">
-          <h2 style="margin:0 0 6px">Quick actions</h2>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a class="btn" href="/app/">Refresh</a>
-            <button class="btn" id="copy-email">Copy my email</button>
+        <div class="row" style="margin-top:10px">
+          <label for="refine">Refine (optional tweak)</label>
+          <input id="refine" placeholder="E.g., switch to luxury theme, add booking CTA above the fold" />
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <label>Blocks</label>
+          <div class="toggle-row" id="blocks">
+            <label class="toggle"><input type="checkbox" checked data-block="hero" /> Hero</label>
+            <label class="toggle"><input type="checkbox" checked data-block="features" /> Features</label>
+            <label class="toggle"><input type="checkbox" checked data-block="gallery" /> Gallery</label>
+            <label class="toggle"><input type="checkbox" checked data-block="testimonials" /> Testimonials</label>
+            <label class="toggle"><input type="checkbox" checked data-block="pricing" /> Pricing</label>
+            <label class="toggle"><input type="checkbox" checked data-block="faq" /> FAQ</label>
+            <label class="toggle"><input type="checkbox" checked data-block="contact" /> Contact</label>
+          </div>
+          <small class="help">You can toggle blocks on/off and re-generate.</small>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <label>Theme</label>
+          <div class="toggle-row" id="themes">
+            <label class="toggle"><input type="radio" name="theme" value="minimal" checked /> Minimal</label>
+            <label class="toggle"><input type="radio" name="theme" value="bold" /> Bold</label>
+            <label class="toggle"><input type="radio" name="theme" value="tech" /> Tech</label>
+            <label class="toggle"><input type="radio" name="theme" value="luxury" /> Luxury</label>
+          </div>
+          <small class="help">Primary CTA uses the chakra gradient for brand pop.</small>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <div class="toolbar">
+            <button id="btnGenerate" class="btn btn-cta">Generate Website</button>
+            <button id="btnSave" class="btn">Save Project</button>
+            <button id="btnVersion" class="btn">Save as Version</button>
+            <button id="btnDownload" class="btn">Download HTML</button>
+            <button id="btnPublish" class="btn">Publish</button>
+            <span id="statusBadge" class="badge">Idle</span>
           </div>
         </div>
-        <div class="card">
-          <h2 style="margin:0 0 6px">Admin</h2>
-          <p class="muted" id="admin-note">Checking admin status…</p>
-          <div id="admin-actions" style="display:none;gap:10px;flex-wrap:wrap">
-            <a class="btn" href="/app/admin/">Go to Admin</a>
-          </div>
-        </div>
+
+        <div class="status" id="status">Ready.</div>
       </section>
-    </main>
-  </div>
 
-  <script>
-    const ADMIN_EMAIL = "admin@vibescript.online";
+      <section class="card preview">
+        <iframe id="preview" title="Live Preview"></iframe>
+      </section>
+    </div>
 
-    (async ()=>{
-      // Load Supabase config
-      const cfg = await fetch("/api/public-env", { cache:"no-store" }).then(r=>r.json()).catch(()=>null);
-      if(!cfg || !cfg.url || !cfg.anon){ document.getElementById('me').textContent = "Missing Supabase config."; return; }
+    <section class="card">
+      <h3 style="margin:0 0 8px">Help & Tips</h3>
+      <p class="help">Speak clearly, give business type, target audience, location, key features, and vibe. Example prompts are available via <strong>Quick ideas</strong>. Autosaves every few seconds.</p>
+      <div class="toolbar" style="margin-top:8px">
+        <button id="btnFeedback" class="btn">Send Feedback</button>
+      </div>
+    </section>
+  </main>
+</div>
 
-      // Init client
-      const sb = supabase.createClient(cfg.url, cfg.anon, { auth:{ persistSession:true, autoRefreshToken:true }});
+<script>
+let sb, user, recorder, mediaStream, isRecording=false;
+const $ = (id)=>document.getElementById(id);
+const statusEl = $("status"), badgeEl = $("statusBadge"), iframe = $("preview");
+const storageKeyPrompt = "vs_prompt_draft"; const storageKeyRefine="vs_refine_draft";
 
-      // Require session
-      const { data:{ session } } = await sb.auth.getSession();
-      if(!session){ location.replace("/signin.html"); return; }
+function setStatus(text, badge){ statusEl.textContent=text||""; if(badge) badgeEl.textContent=badge; }
+function getSelectedBlocks(){ return Array.from(document.querySelectorAll('#blocks input[type="checkbox"]:checked')).map(i=>i.dataset.block); }
+function getSelectedTheme(){ const r=document.querySelector('#themes input[type="radio"]:checked'); return r ? r.value : "minimal"; }
+function loadPreview(html){ const blob = new Blob([html], {type:"text/html"}); iframe.src = URL.createObjectURL(blob); }
 
-      // Show session summary
-      const user = session.user || {};
-      const info = {
-        email: user.email || "(unknown)",
-        provider: user.app_metadata?.provider || "password",
-        email_confirmed_at: user.email_confirmed_at || null,
-        user_id: user.id
-      };
-      document.getElementById('me').textContent = JSON.stringify(info, null, 2);
+(async function init(){
+  try{
+    // Load Supabase
+    const cfg = await fetch("/api/public-env",{cache:"no-store"}).then(r=>r.json());
+    sb = supabase.createClient(cfg.url, cfg.anon);
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ location.replace("/signin.html"); return; }
+    user = session.user;
 
-      // Admin check
-      const isAdmin = (user.email||"").toLowerCase() === ADMIN_EMAIL;
-      const note = document.getElementById("admin-note");
-      const adminBox = document.getElementById("admin-actions");
-      if(isAdmin){
-        note.textContent = "Admin detected: full privileges.";
-        adminBox.style.display = "flex";
-      }else{
-        note.textContent = "You are signed in as a standard user.";
-      }
+    // Restore drafts
+    const d1 = localStorage.getItem(storageKeyPrompt); if(d1) $("prompt").value = d1;
+    const d2 = localStorage.getItem(storageKeyRefine); if(d2) $("refine").value = d2;
 
-      // Actions
-      document.getElementById("signout").onclick = async ()=>{
-        await sb.auth.signOut();
-        location.replace("/signin.html");
-      };
-      document.getElementById("copy-email").onclick = ()=>{
-        navigator.clipboard.writeText(user.email||"");
-      };
-    })();
-  </script>
+    setStatus("Ready.", "Ready");
+  }catch(e){ setStatus("Auth/config error. Please re-sign in."); }
+})();
+
+// Autosave inputs
+["prompt","refine"].forEach(id=>{
+  $(id).addEventListener("input",()=>{
+    if(id==="prompt") localStorage.setItem(storageKeyPrompt, $("prompt").value);
+    if(id==="refine") localStorage.setItem(storageKeyRefine, $("refine").value);
+  });
+});
+
+// Quick ideas
+$("btnIdeas").onclick = ()=>{
+  const ideas=[
+    "A premium Pilates studio with online class booking and video testimonials.",
+    "A modern real estate agent site with featured listings and lead capture.",
+    "A minimalist SaaS landing for a time-tracking app with pricing tiers.",
+    "A bold coffee roaster e-commerce with product reviews and subscription.",
+    "A luxury wedding photographer portfolio with galleries and contact form."
+  ];
+  $("prompt").value = ideas[Math.floor(Math.random()*ideas.length)];
+  localStorage.setItem(storageKeyPrompt, $("prompt").value);
+};
+
+// Clear
+$("btnClear").onclick = ()=>{
+  $("prompt").value=""; $("refine").value="";
+  localStorage.removeItem(storageKeyPrompt); localStorage.removeItem(storageKeyRefine);
+  setStatus("Cleared.", "Idle");
+  loadPreview("<!doctype html><title>Preview</title><body style='font-family:sans-serif'>Preview cleared.</body>");
+};
+
+// Voice record (Web Speech API primary; falls back to simple warning)
+$("btnMic").onclick = ()=>{
+  const btn = $("btnMic");
+  if(isRecording){ window.SpeechRecognitionInstance && window.SpeechRecognitionInstance.stop(); isRecording=false; btn.textContent="🎙️ Record"; $("micStatus").textContent="Stopped."; return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ $("micStatus").textContent="Speech recognition not supported on this device."; return; }
+  const rec = new SR(); window.SpeechRecognitionInstance = rec;
+  rec.lang = "en-US"; rec.interimResults = true; rec.continuous = false;
+  let transcript=""; isRecording=true; btn.textContent="■ Stop"; $("micStatus").textContent="Listening…";
+  rec.onresult = (e)=>{ for(const r of e.results){ transcript += r[0].transcript; } $("prompt").value = transcript; localStorage.setItem(storageKeyPrompt, transcript); };
+  rec.onerror = (e)=>{ $("micStatus").textContent = "Mic error: " + e.error; isRecording=false; btn.textContent="🎙️ Record"; };
+  rec.onend = ()=>{ isRecording=false; btn.textContent="🎙️ Record"; $("micStatus").textContent="Captured."; };
+  rec.start();
+};
+
+// Generate
+$("btnGenerate").onclick = async ()=>{
+  const prompt = $("prompt").value.trim(); if(!prompt){ setStatus("Please enter or record a prompt.", "Need prompt"); return; }
+  const refine = $("refine").value.trim();
+  const blocks = getSelectedBlocks(); const theme=getSelectedTheme();
+  setStatus("Queued…", "Queued");
+  try{
+    setStatus("Generating with GENESIS…", "Generating");
+    const res = await fetch("/api/generate-site", {
+      method:"POST", headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ prompt, refine, blocks, theme })
+    });
+    if(!res.ok){ const t=await res.text(); throw new Error(t||"Generation failed"); }
+    const { html } = await res.json();
+    if(!html || !html.includes("<!DOCTYPE html")) throw new Error("Invalid HTML returned.");
+    loadPreview(html);
+    window.__VS_LAST_HTML__ = html;
+    setStatus("Ready", "Ready");
+  }catch(e){ setStatus("Error: " + e.message, "Error"); }
+};
+
+// Save project
+$("btnSave").onclick = async ()=>{
+  if(!window.__VS_LAST_HTML__){ setStatus("Generate a site first.", "No HTML"); return; }
+  const title = ( $("prompt").value.trim().slice(0,60) || "Untitled Project");
+  const res = await fetch("/api/save-project", {
+    method:"POST", headers:{ "content-type":"application/json" },
+    body: JSON.stringify({ title, html: window.__VS_LAST_HTML__, prompt:$("prompt").value, theme:getSelectedTheme(), blocks:getSelectedBlocks() })
+  });
+  const j = await res.json();
+  if(j.success){ setStatus("Saved project.", "Saved"); } else { setStatus("Save failed.", "Error"); }
+};
+
+// Save version
+$("btnVersion").onclick = async ()=>{
+  if(!window.__VS_LAST_HTML__){ setStatus("Generate first.", "No HTML"); return; }
+  const label = "v" + Math.floor(Date.now()/1000);
+  const res = await fetch("/api/save-version", {
+    method:"POST", headers:{ "content-type":"application/json" },
+    body: JSON.stringify({ label, html: window.__VS_LAST_HTML__ })
+  });
+  const j = await res.json();
+  if(j.success){ setStatus("Version saved ("+label+").", "Saved"); } else { setStatus("Version failed.", "Error"); }
+};
+
+// Download HTML
+$("btnDownload").onclick = ()=>{
+  if(!window.__VS_LAST_HTML__){ setStatus("Generate first.", "No HTML"); return; }
+  const blob = new Blob([window.__VS_LAST_HTML__], { type:"text/html" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "vibescript-site.html"; a.click();
+  URL.revokeObjectURL(url);
+};
+
+// Publish (shareable URL)
+$("btnPublish").onclick = async ()=>{
+  if(!window.__VS_LAST_HTML__){ setStatus("Generate first.", "No HTML"); return; }
+  const res = await fetch("/api/publish", {
+    method:"POST", headers:{ "content-type":"application/json" },
+    body: JSON.stringify({ html: window.__VS_LAST_HTML__ })
+  });
+  const j = await res.json();
+  if(j.success){ setStatus("Published: " + j.url, "Published"); window.open(j.url, "_blank"); }
+  else setStatus("Publish failed.", "Error");
+};
+
+// My projects (simple list)
+$("btnProjects").onclick = async ()=>{
+  const res = await fetch("/api/list-projects");
+  const j = await res.json();
+  if(!j.success){ alert("Failed to load projects."); return; }
+  const items = j.items || [];
+  const list = items.map(p=>`• ${p.title} — <a target="_blank" href="/preview/${p.id}">Preview</a>`).join("<br>");
+  const html = `<!doctype html><meta charset="utf-8"><title>Projects</title><body style="font-family:Inter,system-ui;padding:18px;background:#0b1220;color:#e8eefc"><h2>My Projects</h2>${list||"No projects yet."}</body>`;
+  loadPreview(html);
+};
+
+// Feedback
+$("btnFeedback").onclick = async ()=>{
+  const message = prompt("Tell us what to improve:");
+  if(!message) return;
+  await fetch("/api/feedback", { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify({ message, meta:{ page:"builder" } }) });
+  alert("Thanks! Feedback sent.");
+};
+
+// Sign out
+$("btnSignOut").onclick = async ()=>{
+  const cfg = await fetch("/api/public-env").then(r=>r.json());
+  const client = supabase.createClient(cfg.url, cfg.anon);
+  await client.auth.signOut();
+  location.replace("/signin.html");
+};
+</script>
 </body>
 </html>
