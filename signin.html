@@ -5,36 +5,134 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VibeScript Builder — Sign in</title>
   <meta name="description" content="Sign in to VibeScript Builder with email/password or Google." />
+
+  <!-- THEME ------------------------------------------------------------->
   <style>
-    :root { --bg:#0a0c10; --card:#0f1218; --text:#eef3ff; --muted:#9fb0c8; --ok:#86efac; --err:#fca5a5; }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .wrap { min-height:100%; display:grid; place-items:center; padding: 16px; }
-    .card { width:min(480px,100%); background:var(--card); border:1px solid rgba(159,176,200,.16); border-radius:16px; padding:18px; box-shadow: 0 10px 26px rgba(0,0,0,.28) }
-    h1 { margin:.2em 0 .4em; font-size: clamp(22px, 6vw, 28px); letter-spacing:-0.01em; }
-    p.lead { color:var(--muted); margin:.5em 0 1.25em; font-size:14px; }
-    label { display:block; font-size:14px; color:#c6d3e1; margin: 10px 0 6px; }
-    input { width:100%; background:#0c1117; color:#eef3ff; border:1px solid rgba(159,176,200,.26); border-radius:12px; padding:12px 14px; font-size:16px; }
-    input:focus-visible { outline:none; border-color: #58a6ff; box-shadow: 0 0 0 4px rgba(88, 166, 255, .25) }
-    .row { display:grid; gap:10px; }
-    .btn { width:100%; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 16px; border-radius:12px; border:1px solid rgba(159,176,200,.26); font-weight:600; cursor:pointer; }
-    .btn[disabled] { opacity:.6; cursor:not-allowed; }
-    .btn-cta { border:0; background: linear-gradient(90deg,#22c55e,#16a34a,#15803d); color:#08120a; }
-    .muted { color:#9fb0c8; font-size:13px; }
-    .status { margin-top:10px; font-size:14px; }
-    .ok { color: var(--ok); }
-    .err { color: var(--err); }
-    .divider { margin:14px 0; text-align:center; color:#9fb0c8; font-size:12px; }
-    a { color:#a7f3d0; }
+    :root{
+      /* Chakra-VIBE spectrum */
+      --chakra-1:#ff3b30; /* red */
+      --chakra-2:#ff9500; /* orange */
+      --chakra-3:#ffd60a; /* yellow */
+      --chakra-4:#22c55e; /* green */
+      --chakra-5:#0ea5e9; /* blue */
+      --chakra-6:#7c3aed; /* indigo/violet */
+      --chakra-7:#ec4899; /* magenta accent */
+
+      --bg:#06090f;
+      --card:#0d1220;
+      --text:#eaf2ff;
+      --muted:#9fb0c8;
+      --border:rgba(159,176,200,.18);
+
+      /* supply your asset URLs here; defaults are harmless */
+      --logo-url:url('/assets/vibescript-logo.png');
+      --bolt-url:url('/assets/bolt-horizontal.png');
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 10% -10%, rgba(124,58,237,.25), transparent 60%),
+        radial-gradient(1000px 600px at 100% 0%, rgba(14,165,233,.20), transparent 60%),
+        var(--bg);
+      background-color:var(--bg);
+      overflow-y:auto;
+    }
+
+    /* lightning texture faint in the back */
+    .bolt-bg::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:var(--bolt-url);
+      background-repeat:no-repeat;
+      background-position: right -80px top -40px;
+      background-size: min(1200px, 140%);
+      opacity:.08;
+      mix-blend-mode:screen;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    .wrap{min-height:100%; display:grid; place-items:center; padding:18px; position:relative; z-index:1}
+    .card{
+      width:min(520px, 100%);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)) , var(--card);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:22px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.45);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; margin-bottom:10px;
+    }
+    .brand .logo{
+      width:42px; height:42px; border-radius:12px;
+      background-image:var(--logo-url); background-size:cover; background-position:center;
+      border:1px solid var(--border); box-shadow:0 6px 14px rgba(0,0,0,.35);
+    }
+    h1{margin:.1em 0 .25em; font-size: clamp(24px, 6vw, 30px); letter-spacing:-.01em}
+    p.lead{color:var(--muted); margin:0 0 16px; font-size:14px}
+
+    label{display:block; font-size:13px; color:#c7d4e6; margin:12px 0 6px}
+    input{
+      width:100%; padding:12px 14px; border-radius:12px;
+      background:#0b1020; color:var(--text); border:1px solid var(--border); font-size:16px;
+    }
+    input:focus-visible{outline:none; border-color:#58a6ff; box-shadow:0 0 0 4px rgba(88,166,255,.25)}
+
+    .row{display:grid; gap:10px}
+
+    .btn{
+      width:100%; display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding:12px 16px; border-radius:14px; border:1px solid var(--border); font-weight:700; cursor:pointer;
+      background:#0f1527; color:var(--text);
+      transition:transform .04s ease, box-shadow .12s ease, opacity .2s;
+    }
+    .btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.25)}
+    .btn[disabled]{opacity:.6; cursor:not-allowed; box-shadow:none; transform:none}
+
+    /* Chakra gradient primary button */
+    .btn-cta{
+      border:0;
+      color:#07120a;
+      background:
+        linear-gradient(90deg,
+          var(--chakra-1) 0%,
+          var(--chakra-2) 14%,
+          var(--chakra-3) 28%,
+          var(--chakra-4) 42%,
+          var(--chakra-5) 60%,
+          var(--chakra-6) 78%,
+          var(--chakra-7) 100%);
+      box-shadow: 0 6px 20px rgba(124,58,237,.35);
+    }
+
+    .status{margin-top:10px; font-size:14px; min-height:1.6em}
+    .ok{color:#86efac}
+    .err{color:#fca5a5}
+    .muted{color:var(--muted); font-size:13px}
+
+    .foot{margin-top:14px; display:flex; justify-content:center; gap:12px; flex-wrap:wrap}
+    .foot a{color:#a7f3d0; text-decoration:none}
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body class="bolt-bg">
   <main class="wrap">
     <section class="card">
-      <h1>VibeScript Builder</h1>
-      <p class="lead">Sign in with email/password or continue with Google.</p>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>VibeScript Builder</h1>
+          <p class="lead">Sign in with email/password or continue with Google.</p>
+        </div>
+      </div>
 
       <form id="form" class="row" autocomplete="on">
         <label for="email">Email</label>
@@ -49,80 +147,65 @@
       </form>
 
       <p id="status" class="status muted"></p>
-      <p class="muted">By continuing you agree to our terms and privacy policy.</p>
+
+      <div class="foot muted">
+        <span>By continuing you agree to our</span>
+        <a href="#">terms</a>
+        <span>and</span>
+        <a href="#">privacy policy</a>
+      </div>
     </section>
   </main>
 
+  <!-- LOGIC ------------------------------------------------------------->
   <script>
-    // --- CONFIG: your Supabase project (GSG) ---
+    /* CONFIG (GSG project) */
     const SUPABASE_URL = 'https://gsgdbawjwpveqrasoasn.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZ2RiYXdqd3B2ZXFyYXNvYXNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTAxMDcsImV4cCI6MjA3Mzk2NjEwN30.qZQLqWZyPLDlyHbfm05D3miMg_1GD5ERitB6QKnUWKI';
-    const CALLBACK = 'https://builder.vibescript.online/auth/callback'; // Supabase redirects back here for Google OAuth
+    const DASHBOARD = '/dashboard.html';
+    const CALLBACK = 'https://builder.vibescript.online/auth/callback';
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
     });
 
-    const $ = (id) => document.getElementById(id);
+    const $ = (id)=>document.getElementById(id);
     const statusEl = $('status');
-    function setStatus(text, cls) {
-      statusEl.textContent = text;
-      statusEl.className = 'status ' + (cls || 'muted');
-    }
-    function disableAll(disabled) {
-      ['signin','signup','google'].forEach(id => { const b = $(id); if (b) b.disabled = disabled; });
-    }
+    const setStatus = (t,cls='muted') => { statusEl.textContent=t; statusEl.className='status '+cls; };
+    const disableAll = (d)=>['signin','signup','google'].forEach(id=>{const b=$(id); if(b) b.disabled=d;});
+    const validEmail = (v)=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-    // Prevent default form submit so buttons run JS handlers.
-    $('form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      $('signin').click();
-    });
+    $('form').addEventListener('submit',(e)=>{e.preventDefault(); $('signin').click();});
 
-    $('signin').addEventListener('click', async () => {
+    $('signin').addEventListener('click', async ()=>{
       disableAll(true);
+      const email = $('email').value.trim();
+      const password = $('password').value;
+      if(!validEmail(email)){ setStatus('Please enter a valid email.', 'err'); disableAll(false); return; }
+      if(!password){ setStatus('Password required.', 'err'); disableAll(false); return; }
       setStatus('Signing in…');
-      const email = $('email').value.trim();
-      const password = $('password').value;
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setStatus('Sign in failed: ' + error.message, 'err');
-        disableAll(false);
-        return;
-      }
+      const {error} = await supabase.auth.signInWithPassword({email,password});
+      if(error){ setStatus('Sign in failed: '+error.message, 'err'); disableAll(false); return; }
       setStatus('Signed in. Redirecting…', 'ok');
-      window.location.href = '/dashboard.html';
+      window.location.href = DASHBOARD;
     });
 
-    $('signup').addEventListener('click', async () => {
+    $('signup').addEventListener('click', async ()=>{
       disableAll(true);
-      setStatus('Creating account…');
       const email = $('email').value.trim();
       const password = $('password').value;
-
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        setStatus('Create account failed: ' + error.message, 'err');
-        disableAll(false);
-        return;
-      }
-      setStatus('Account created. You can sign in now.', 'ok');
-      disableAll(false);
+      if(!validEmail(email)){ setStatus('Please enter a valid email to create an account.', 'err'); disableAll(false); return; }
+      if(!password){ setStatus('Choose a password to create an account.', 'err'); disableAll(false); return; }
+      setStatus('Creating account…');
+      const {error} = await supabase.auth.signUp({email,password});
+      if(error){ setStatus('Create account failed: '+error.message, 'err'); disableAll(false); return; }
+      setStatus('Account created. You can sign in now.', 'ok'); disableAll(false);
     });
 
-    $('google').addEventListener('click', async () => {
-      disableAll(true);
-      setStatus('Opening Google…');
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: CALLBACK }
-      });
-      if (error) {
-        setStatus('Google sign-in failed: ' + error.message, 'err');
-        disableAll(false);
-      }
-      // On success, browser navigates to Google then back to CALLBACK.
+    $('google').addEventListener('click', async ()=>{
+      disableAll(true); setStatus('Opening Google…');
+      const {error} = await supabase.auth.signInWithOAuth({provider:'google', options:{redirectTo:CALLBACK}});
+      if(error){ setStatus('Google sign-in failed: '+error.message, 'err'); disableAll(false); }
     });
   </script>
 </body>
