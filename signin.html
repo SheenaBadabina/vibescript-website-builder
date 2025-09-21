@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeScript Builder — Sign in</title>
+  <meta name="description" content="Sign in to VibeScript Builder with email/password or Google." />
+  <style>
+    :root { --bg:#0a0c10; --card:#0f1218; --text:#eef3ff; --muted:#9fb0c8; --ok:#86efac; --err:#fca5a5; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { min-height:100%; display:grid; place-items:center; padding: 16px; }
+    .card { width:min(480px,100%); background:var(--card); border:1px solid rgba(159,176,200,.16); border-radius:16px; padding:18px; box-shadow: 0 10px 26px rgba(0,0,0,.28) }
+    h1 { margin:.2em 0 .4em; font-size: clamp(22px, 6vw, 28px); letter-spacing:-0.01em; }
+    p.lead { color:var(--muted); margin:.5em 0 1.25em; font-size:14px; }
+    label { display:block; font-size:14px; color:#c6d3e1; margin: 10px 0 6px; }
+    input { width:100%; background:#0c1117; color:#eef3ff; border:1px solid rgba(159,176,200,.26); border-radius:12px; padding:12px 14px; font-size:16px; }
+    input:focus-visible { outline:none; border-color: #58a6ff; box-shadow: 0 0 0 4px rgba(88, 166, 255, .25) }
+    .row { display:grid; gap:10px; }
+    .btn { width:100%; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 16px; border-radius:12px; border:1px solid rgba(159,176,200,.26); font-weight:600; cursor:pointer; }
+    .btn[disabled] { opacity:.6; cursor:not-allowed; }
+    .btn-cta { border:0; background: linear-gradient(90deg,#22c55e,#16a34a,#15803d); color:#08120a; }
+    .muted { color:#9fb0c8; font-size:13px; }
+    .status { margin-top:10px; font-size:14px; }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    .divider { margin:14px 0; text-align:center; color:#9fb0c8; font-size:12px; }
+    a { color:#a7f3d0; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>VibeScript Builder</h1>
+      <p class="lead">Sign in with email/password or continue with Google.</p>
+
+      <form id="form" class="row" autocomplete="on">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+
+        <button id="signin" class="btn btn-cta" type="submit">Sign in</button>
+        <button id="signup" class="btn" type="button">Create account</button>
+        <button id="google" class="btn" type="button">Continue with Google</button>
+      </form>
+
+      <p id="status" class="status muted"></p>
+      <p class="muted">By continuing you agree to our terms and privacy policy.</p>
+    </section>
+  </main>
+
+  <script>
+    // --- CONFIG: your Supabase project (GSG) ---
+    const SUPABASE_URL = 'https://gsgdbawjwpveqrasoasn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZ2RiYXdqd3B2ZXFyYXNvYXNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTAxMDcsImV4cCI6MjA3Mzk2NjEwN30.qZQLqWZyPLDlyHbfm05D3miMg_1GD5ERitB6QKnUWKI';
+    const CALLBACK = 'https://builder.vibescript.online/auth/callback'; // Supabase redirects back here for Google OAuth
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+
+    const $ = (id) => document.getElementById(id);
+    const statusEl = $('status');
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.className = 'status ' + (cls || 'muted');
+    }
+    function disableAll(disabled) {
+      ['signin','signup','google'].forEach(id => { const b = $(id); if (b) b.disabled = disabled; });
+    }
+
+    // Prevent default form submit so buttons run JS handlers.
+    $('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('signin').click();
+    });
+
+    $('signin').addEventListener('click', async () => {
+      disableAll(true);
+      setStatus('Signing in…');
+      const email = $('email').value.trim();
+      const password = $('password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setStatus('Sign in failed: ' + error.message, 'err');
+        disableAll(false);
+        return;
+      }
+      setStatus('Signed in. Redirecting…', 'ok');
+      window.location.href = '/dashboard.html';
+    });
+
+    $('signup').addEventListener('click', async () => {
+      disableAll(true);
+      setStatus('Creating account…');
+      const email = $('email').value.trim();
+      const password = $('password').value;
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        setStatus('Create account failed: ' + error.message, 'err');
+        disableAll(false);
+        return;
+      }
+      setStatus('Account created. You can sign in now.', 'ok');
+      disableAll(false);
+    });
+
+    $('google').addEventListener('click', async () => {
+      disableAll(true);
+      setStatus('Opening Google…');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: CALLBACK }
+      });
+      if (error) {
+        setStatus('Google sign-in failed: ' + error.message, 'err');
+        disableAll(false);
+      }
+      // On success, browser navigates to Google then back to CALLBACK.
+    });
+  </script>
+</body>
+</html>
