@@ -11,7 +11,6 @@
       <h1 class="text-2xl font-bold text-white mb-2 text-center">VibeScript Builder</h1>
       <p class="text-sm text-gray-300 mb-6 text-center">Sign in with email/password or continue with Google.</p>
 
-      <!-- Sign-in -->
       <form id="formSignIn" method="POST" action="/api/signin" class="space-y-4">
         <div>
           <label for="email" class="block text-xs font-medium text-gray-300 mb-1">Email</label>
@@ -33,7 +32,7 @@
         </button>
       </form>
 
-      <!-- Always-visible resend (works even if sign-in fails with “email not confirmed”) -->
+      <!-- Always-visible resend -->
       <form id="formResend" method="POST" action="/api/resend-confirmation" class="mt-4">
         <input type="hidden" name="email" id="resendEmail" />
         <button type="submit"
