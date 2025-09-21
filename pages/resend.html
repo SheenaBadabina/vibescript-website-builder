@@ -30,7 +30,6 @@
     </div>
 
     <script>
-      // Prefill from ?email=... if present
       const params = new URLSearchParams(location.search);
       const e = params.get("email");
       if (e) document.getElementById("email").value = e;
