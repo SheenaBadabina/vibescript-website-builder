@@ -9,7 +9,7 @@
   <body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 via-slate-950 to-black">
     <div class="w-full max-w-md p-6 rounded-2xl bg-black/30 border border-white/10 shadow-xl backdrop-blur">
       <h1 class="text-2xl font-bold text-white mb-2 text-center">VibeScript Builder</h1>
-      <p class="text-sm text-gray-300 mb-6 text-center">Sign in with email/password or continue with Google.</p>
+      <p class="text-sm text-gray-300 mb-6 text-center">Sign in with email/password.</p>
 
       <form method="POST" action="/api/signin" class="space-y-4">
         <div>
@@ -30,16 +30,14 @@
                 class="w-full rounded-xl bg-gradient-to-r from-pink-500 via-yellow-400 to-teal-400 px-4 py-2 text-sm font-semibold text-black">
           Sign in
         </button>
-
-        <button type="button"
-                onclick="window.location.href='/api/auth/google'"
-                class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white">
-          Continue with Google
-        </button>
       </form>
 
       <p class="mt-4 text-center text-xs text-gray-400">
         Don’t have an account? <a href="/signup" class="underline underline-offset-2 hover:text-gray-200">Create account</a>
+      </p>
+
+      <p class="mt-2 text-center text-xs text-gray-400">
+        Didn’t get the email? <a href="/resend" class="underline underline-offset-2 hover:text-gray-200">Resend confirmation</a>
       </p>
 
       <p class="mt-4 text-center text-[11px] leading-relaxed text-gray-400">
@@ -50,7 +48,6 @@
       </p>
     </div>
 
-    <!-- Sitewide footer (auto-injected) -->
     <script src="/scripts/footer-loader.js"></script>
   </body>
 </html>
