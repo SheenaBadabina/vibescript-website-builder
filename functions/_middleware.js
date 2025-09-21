@@ -14,7 +14,7 @@ export async function onRequest({ request, env, next }) {
   const { pathname } = new URL(request.url);
 
   if (PUBLIC_EXACT.has(pathname) || PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return next();
-  if (/\.[a-z0-9]+$/i.test(pathname)) return next(); // static files
+  if (/\.[a-z0-9]+$/i.test(pathname)) return next();
 
   const cookies = parseCookies(request.headers.get("Cookie") || "");
   const token = cookies[COOKIE];
