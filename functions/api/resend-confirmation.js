@@ -40,7 +40,6 @@ export function onRequestGet() {
   return html(405, page("Resend confirmation", "<p class='text-sm text-gray-300'>Use POST.</p>"));
 }
 
-// helpers
 function html(status, content){ return new Response(content,{status,headers:{ "content-type":"text/html; charset=UTF-8"}}); }
 function page(title, inner){ return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${title} — VibeScript</title><link rel="stylesheet" href="/styles.css"/></head><body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 via-slate-950 to-black"><div class="w-full max-w-md p-6 rounded-2xl bg-black/30 border border-white/10 shadow-xl backdrop-blur">${inner}</div><script src="/scripts/footer-loader.js"></script></body></html>`; }
 function done(msg){ return page("Resent", `<h1 class="text-xl font-bold text-white mb-2">Check your email</h1><p class="text-sm text-gray-300 mb-4">${msg}</p><div class="flex gap-2"><a href="/signin" class="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white">Back to sign in</a></div>`); }
