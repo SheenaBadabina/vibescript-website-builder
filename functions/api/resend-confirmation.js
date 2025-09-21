@@ -12,14 +12,14 @@ export async function onRequestPost({ request, env }) {
     const form = await request.formData();
     email = String(form.get("email") || "").trim().toLowerCase();
   }
-  if (!email) return html(400, page("Resend failed", "<p class='text-sm text-gray-300'>Email is required.</p>"));
+  if (!email) return html(400, page("Resend failed", msg("Email is required.")));
 
   const user = await getUser(env, email);
-  if (!user) return html(200, done("If an account exists, a new confirmation was sent."));
-  if (user.verified) return html(200, done("Your email is already verified. You can sign in."));
+  if (!user) return html(200, done());           // don’t leak existence
+  if (user.verified) return html(200, done());   // already verified → just say sent
 
   const token = newToken();
-  await putToken(env, token, { email }, 60 * 60 * 24);
+  await putToken(env, token, { email }, 60 * 60 * 24); // 24h
 
   const verifyUrl = new URL(`/api/verify?token=${token}`, request.url).toString();
   await sendEmail(env, {
@@ -33,13 +33,14 @@ export async function onRequestPost({ request, env }) {
     </div>`
   });
 
-  return html(200, done("If an account exists, a new confirmation was sent."));
+  return html(200, done());
 }
 
-export function onRequestGet() {
-  return html(405, page("Resend confirmation", "<p class='text-sm text-gray-300'>Use POST.</p>"));
-}
+export function onRequestGet(){ return html(405, page("Resend confirmation", msg("Use POST."))); }
 
+// helpers
 function html(status, content){ return new Response(content,{status,headers:{ "content-type":"text/html; charset=UTF-8"}}); }
 function page(title, inner){ return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${title} — VibeScript</title><link rel="stylesheet" href="/styles.css"/></head><body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 via-slate-950 to-black"><div class="w-full max-w-md p-6 rounded-2xl bg-black/30 border border-white/10 shadow-xl backdrop-blur">${inner}</div><script src="/scripts/footer-loader.js"></script></body></html>`; }
-function done(msg){ return page("Resent", `<h1 class="text-xl font-bold text-white mb-2">Check your email</h1><p class="text-sm text-gray-300 mb-4">${msg}</p><div class="flex gap-2"><a href="/signin" class="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white">Back to sign in</a></div>`); }
+function msg(text){ return `<p class="text-sm text-gray-300 mb-4">${escape(text)}</p><div class="flex gap-2"><a href="/signin" class="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white">Back to sign in</a></div>`; }
+function done(){ return page("Check your email", msg("If an account exists, a new confirmation was sent.")); }
+function escape(s=""){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
