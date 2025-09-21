@@ -1,6 +1,4 @@
 // functions/api/resend-confirmation.js
-// Generates a fresh token if user exists and is not verified, emails a new link.
-
 import { sendEmail } from "../_utils/email.js";
 import { newToken, getUser, putToken } from "../_utils/db.js";
 
@@ -17,7 +15,7 @@ export async function onRequestPost({ request, env }) {
   if (!email) return html(400, page("Resend failed", "<p class='text-sm text-gray-300'>Email is required.</p>"));
 
   const user = await getUser(env, email);
-  if (!user) return html(200, done("If an account exists, a new confirmation was sent.")); // don't leak existence
+  if (!user) return html(200, done("If an account exists, a new confirmation was sent."));
   if (user.verified) return html(200, done("Your email is already verified. You can sign in."));
 
   const token = newToken();
@@ -28,10 +26,10 @@ export async function onRequestPost({ request, env }) {
     to: email,
     subject: "Your VibeScript confirmation link",
     html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
-    <p>Here is your new confirmation link:</p>
-    <p><a href="${verifyUrl}" style="background:#10b981;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none">Confirm email</a></p>
-    <p>Or paste this link in your browser:<br/>${verifyUrl}</p>
-    <p>This link expires in 24 hours.</p>
+      <p>Here is your new confirmation link:</p>
+      <p><a href="${verifyUrl}" style="background:#10b981;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none">Confirm email</a></p>
+      <p>Or paste this link in your browser:<br/>${verifyUrl}</p>
+      <p>This link expires in 24 hours.</p>
     </div>`
   });
 
