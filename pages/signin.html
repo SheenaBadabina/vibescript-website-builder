@@ -1,101 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In - VibeScript</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In — VibeScript Builder</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 via-slate-950 to-black">
+    <div class="w-full max-w-md p-6 rounded-2xl bg-black/30 border border-white/10 shadow-xl backdrop-blur">
+      <h1 class="text-2xl font-bold text-white mb-2 text-center">VibeScript Builder</h1>
+      <p class="text-sm text-gray-300 mb-6 text-center">
+        Sign in with email/password or continue with Google.
+      </p>
 
-  <div class="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">
-      Welcome to VibeScript
-    </h1>
-    <p class="text-center text-gray-600 mb-4">
-      Sign in to continue
-    </p>
+      <form method="POST" action="/api/signin" class="space-y-4">
+        <div>
+          <label for="email" class="block text-xs font-medium text-gray-300 mb-1">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            class="block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-gray-400 focus:border-teal-400 focus:outline-none"
+            placeholder="you@example.com"
+          />
+        </div>
 
-    <!-- Google Sign-In Button -->
-    <button 
-      id="googleSignIn"
-      class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-3"
-    >
-      <img 
-        src="https://www.svgrepo.com/show/355037/google.svg" 
-        alt="Google logo" 
-        class="w-6 h-6"
-      />
-      Continue with Google
-    </button>
+        <div>
+          <label for="password" class="block text-xs font-medium text-gray-300 mb-1">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            class="block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-gray-400 focus:border-teal-400 focus:outline-none"
+            placeholder="••••••••"
+          />
+        </div>
 
-    <!-- Divider -->
-    <div class="flex items-center my-6">
-      <hr class="flex-grow border-gray-300">
-      <span class="px-3 text-gray-400 text-sm">or</span>
-      <hr class="flex-grow border-gray-300">
+        <button
+          type="submit"
+          class="w-full rounded-xl bg-gradient-to-r from-pink-500 via-yellow-400 to-teal-400 px-4 py-2 text-sm font-semibold text-black"
+        >
+          Sign in
+        </button>
+
+        <button
+          type="button"
+          onclick="window.location.href='/api/auth/google'"
+          class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white"
+        >
+          Continue with Google
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-[11px] leading-relaxed text-gray-400">
+        By continuing you agree to our
+        <a href="/terms.html" class="underline underline-offset-2 hover:text-gray-200">terms</a>
+        and
+        <a href="/privacy.html" class="underline underline-offset-2 hover:text-gray-200">privacy policy</a>.
+      </p>
     </div>
-
-    <!-- Email Login (optional future use) -->
-    <form id="emailForm" class="space-y-4">
-      <input 
-        type="email" 
-        id="email" 
-        placeholder="Email address"
-        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500"
-      />
-      <button 
-        type="submit" 
-        class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg"
-      >
-        Continue with Email
-      </button>
-    </form>
-
-    <!-- Error Message -->
-    <div id="errorMessage" class="text-red-500 text-sm mt-4 hidden"></div>
-  </div>
-
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-    const SUPABASE_URL = "https://gsgdbawjwpveqraosan.supabase.co"; // your project ref
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // replace with your anon key
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const googleBtn = document.getElementById("googleSignIn");
-    const errorDiv = document.getElementById("errorMessage");
-
-    googleBtn.addEventListener("click", async () => {
-      try {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: "https://builder.vibescript.online/auth/v1/callback"
-          }
-        });
-        if (error) throw error;
-      } catch (err) {
-        errorDiv.textContent = "Google sign-in failed: " + err.message;
-        errorDiv.classList.remove("hidden");
-      }
-    });
-
-    // Optional email login
-    const emailForm = document.getElementById("emailForm");
-    emailForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      try {
-        const { error } = await supabase.auth.signInWithOtp({ email });
-        if (error) throw error;
-        alert("Check your email for a login link!");
-      } catch (err) {
-        errorDiv.textContent = "Email login failed: " + err.message;
-        errorDiv.classList.remove("hidden");
-      }
-    });
-  </script>
-</body>
+  </body>
 </html>
