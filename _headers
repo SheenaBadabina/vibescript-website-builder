@@ -1,8 +1,5 @@
 /*
-  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-  X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: microphone=(), geolocation=()
   Cache-Control: no-store
-  Content-Security-Policy: default-src 'self'; img-src 'self' https://vibescript.online data:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://*.supabase.co https://*.supabase.in; base-uri 'self'; frame-ancestors 'self'
