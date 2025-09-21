@@ -1,0 +1,46 @@
+<!-- components/footer.html
+     VibeScript Builder footer (mobile-first, dark theme)
+     Links: Terms -> /terms.html, Privacy -> /privacy.html
+-->
+<footer
+  class="w-full border-t border-white/10 text-gray-300"
+  style="background: radial-gradient(120% 120% at 50% -10%, #0b1220 0%, #020409 60%, #000 100%);"
+>
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <!-- Top row: brand + nav (stack on mobile) -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="text-sm font-semibold text-white">VibeScript</div>
+        <div class="text-xs text-gray-400">Speak a website into existence.</div>
+      </div>
+
+      <nav aria-label="Footer navigation" class="flex flex-wrap gap-x-6 gap-y-2">
+        <a href="/terms.html" class="text-sm underline-offset-4 hover:underline">Terms</a>
+        <a href="/privacy.html" class="text-sm underline-offset-4 hover:underline">Privacy Policy</a>
+        <a href="/#features" class="text-sm underline-offset-4 hover:underline">Features</a>
+        <a href="/#pricing" class="text-sm underline-offset-4 hover:underline">Pricing</a>
+        <a href="/#contact" class="text-sm underline-offset-4 hover:underline">Contact</a>
+      </nav>
+    </div>
+
+    <!-- Divider -->
+    <div class="my-6 h-px w-full" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);"></div>
+
+    <!-- Bottom row -->
+    <div class="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+      <p class="text-xs text-gray-400">
+        © <span id="vs-year"></span> VibeScript. All rights reserved.
+      </p>
+      <p class="text-[11px] text-gray-500">Built with ❤️ in Eagle Mountain, Utah.</p>
+    </div>
+  </div>
+
+  <script>
+    // Keep copyright current without edits
+    (function () {
+      var y = new Date().getFullYear();
+      var el = document.getElementById("vs-year");
+      if (el) el.textContent = y;
+    })();
+  </script>
+</footer>
