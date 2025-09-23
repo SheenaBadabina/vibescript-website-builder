@@ -1,28 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Resend Confirmation — VibeScript</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body class="vs-wrap" style="min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#0b1020">
-    <div class="vs-card rounded-2xl p-5 shadow-xl" style="width:min(92vw,420px);background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08)">
-      <h1 class="vs-title" style="justify-content:flex-start;gap:.5rem"><span class="vs-bolt"></span> Resend Confirmation</h1>
-      <p class="vs-muted" style="margin:.5rem 0 1rem">Enter your email and we’ll send a fresh link.</p>
-
-      <form method="POST" action="/api/resend-confirmation" class="space-y-3">
-        <label class="block text-xs vs-muted mb-1" for="email">Email</label>
-        <input id="email" name="email" type="email" required class="vs-input" placeholder="you@example.com" />
-        <button type="submit" class="vs-btn vs-btn-primary" style="margin-top:.8rem">Send link</button>
-      </form>
-
-      <p class="vs-footer">Back to <a class="vs-link" href="/signin">sign in</a></p>
-    </div>
-    <script>
-      const p=new URLSearchParams(location.search), e=p.get("email");
-      if(e) document.getElementById("email").value = e;
-    </script>
-    <script src="/scripts/footer-loader.js"></script>
-  </body>
-</html>
+<html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Resend Confirmation — VibeScript</title><link rel="stylesheet" href="/styles.css"/></head>
+<body class="vs-wrap" style="min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#0b1020">
+  <div class="vs-card rounded-2xl p-5 shadow-xl" style="width:min(92vw,420px);background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08)">
+    <h1 class="text-white text-xl font-bold mb-2">Resend confirmation</h1>
+    <p class="vs-muted mb-3">Enter your email and we’ll send a fresh link.</p>
+    <form method="POST" action="/api/resend-confirmation" class="space-y-3">
+      <label class="block text-xs vs-muted mb-1" for="email">Email</label>
+      <input class="vs-input" id="email" name="email" type="email" required placeholder="you@example.com"/>
+      <button class="vs-btn vs-btn-primary" type="submit">Send link</button>
+    </form>
+    <p class="text-center text-xs mt-3"><a class="vs-link" href="/signin">Back to sign in</a></p>
+  </div>
+<script>const e=new URLSearchParams(location.search).get("email"); if(e) document.getElementById("email").value=e;</script>
+<script src="/scripts/footer-loader.js"></script>
+</body></html>
