@@ -1,49 +1,41 @@
-// functions/_utils/session.js
-// Simple HMAC-signed cookie sessions for Cloudflare Pages Functions.
-//
-// ENV:
-// - SESSION_SECRET (recommended): random 32+ char string in Cloudflare Pages → Settings → Environment Variables
+// Minimal HMAC-signed session cookie for Cloudflare Pages Functions.
+export const COOKIE = "vs_session";
+const SECRET_NAME = "SESSION_SECRET";
 
-const COOKIE = "vs_session";
-const ONE_WEEK = 7 * 24 * 60 * 60;
+// base64url helpers
+const b64u = s => btoa(String.fromCharCode(...new Uint8Array(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const text = s => new TextEncoder().encode(s);
 
-async function hmac(secret, data) {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"]
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
-  return btoa(String.fromCharCode(...new Uint8Array(sig)));
+export async function sign(env, payload){
+  const secret = await getKey(env);
+  const body = b64u(text(JSON.stringify(payload)));
+  const sig = await crypto.subtle.sign("HMAC", secret, text(body));
+  return `${body}.${b64u(new Uint8Array(sig))}`;
 }
-
-function parseCookies(header = "") {
-  return Object.fromEntries(header.split(";").map(v => v.trim().split("=").map(decodeURIComponent)).filter(x=>x[0]));
+export async function verify(env, token){
+  if(!token || !token.includes(".")) return null;
+  const [body, sigB64] = token.split(".");
+  const secret = await getKey(env);
+  const ok = await crypto.subtle.verify("HMAC", secret, base64ToBuf(sigB64), text(body));
+  if(!ok) return null;
+  try { return JSON.parse(new TextDecoder().decode(base64ToBuf(body))); } catch { return null; }
 }
-
-async function sign(env, payload) {
-  const data = btoa(JSON.stringify(payload));
-  const sig = await hmac(env.SESSION_SECRET || "dev-secret-change-me", data);
-  return `${data}.${sig}`;
+export function setCookieHeader(token){
+  const base = `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`;
+  return base;
 }
-
-async function verify(env, token) {
-  if (!token || !token.includes(".")) return null;
-  const [data, sig] = token.split(".");
-  const expect = await hmac(env.SESSION_SECRET || "dev-secret-change-me", data);
-  if (sig !== expect) return null;
-  try { return JSON.parse(atob(data)); } catch { return null; }
+export function parseCookies(header){
+  return Object.fromEntries((header||"").split(/;\s*/).map(p=>p.split("=").map(decodeURIComponent)).map(([k,...v])=>[k,(v||[]).join("=")]));
 }
-
-function setCookieHeader(value) {
-  const secure = "Secure"; // CF Pages = HTTPS
-  return `${COOKIE}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ONE_WEEK}; ${secure}`;
+function base64ToBuf(s){
+  const n = s.replace(/-/g,'+').replace(/_/g,'/'); 
+  const bin = atob(n);
+  const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return bytes.buffer;
 }
-
-function clearCookieHeader() {
-  return `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Secure`;
+async function getKey(env){
+  const raw = env[SECRET_NAME] || "dev-local-secret-please-change";
+  const key = await crypto.subtle.importKey("raw", text(raw), {name:"HMAC", hash:"SHA-256"}, false, ["sign","verify"]);
+  return key;
 }
-
-export { COOKIE, parseCookies, sign, verify, setCookieHeader, clearCookieHeader };
