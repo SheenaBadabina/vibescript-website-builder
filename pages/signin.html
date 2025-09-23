@@ -1,104 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Sign In — VibeScript Builder</title>
-    <link rel="stylesheet" href="/styles.css" />
-    <style>
-      /* mobile-first polish that matches your dark+neon theme */
-      .vs-card{background:linear-gradient(180deg,rgba(15,23,42,.6),rgba(2,6,23,.7));border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(8px)}
-      .vs-input{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;padding:.65rem .8rem;font-size:.95rem}
-      .vs-input::placeholder{color:#9CA3AF}
-      .vs-input:focus{outline:none;border-color:#2dd4bf;box-shadow:0 0 0 3px rgba(45,212,191,.15)}
-      .vs-btn{width:100%;border-radius:16px;padding:.7rem 1rem;font-weight:700}
-      .vs-btn-primary{background:linear-gradient(90deg,#fb7185,#f59e0b,#22d3ee);color:#111}
-      .vs-btn-ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)}
-      .vs-link{color:#e5e7eb;text-decoration:underline;text-underline-offset:3px}
-      .vs-muted{color:#9CA3AF}
-      .vs-title{font-size:1.65rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:.6rem;justify-content:center}
-      .vs-bolt{width:22px;height:22px;display:inline-block;background:conic-gradient(from 180deg,#f59e0b,#a855f7,#22d3ee,#f59e0b);mask:url('/assets/bolt.svg') center/contain no-repeat;-webkit-mask:url('/assets/bolt.svg') center/contain no-repeat}
-      .vs-logo{width:28px;height:28px;border-radius:8px;box-shadow:0 0 24px rgba(34,211,238,.35)}
-      .vs-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:radial-gradient(60% 40% at 70% 0%,rgba(34,211,238,.12),transparent 60%), radial-gradient(50% 40% at 0% 100%,rgba(245,158,11,.12),transparent 60%), #0b1020 url('/assets/stars.webp') center/cover no-repeat fixed}
-      .vs-footer{font-size:.7rem;line-height:1.15rem;color:#a3a3a3;text-align:center;margin-top:1rem}
-      @media (min-width:480px){.vs-card{padding:1.2rem}}
-    </style>
-  </head>
-  <body class="vs-wrap">
-    <main class="w-full max-w-md p-4">
-      <div class="vs-card rounded-2xl p-5 shadow-xl">
-        <header class="mb-4 text-center">
-          <div class="flex items-center justify-center gap-2">
-            <img src="/assets/vibescript-logo.png" alt="VibeScript" class="vs-logo" />
-            <h1 class="vs-title">VibeScript Builder <span class="vs-bolt" aria-hidden="true"></span></h1>
-          </div>
-          <p class="vs-muted mt-2 text-sm">Sign in with email/password or continue with Google.</p>
-        </header>
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sign In — VibeScript Builder</title>
+<link rel="stylesheet" href="/styles.css"/>
+<style>
+  .vs-card{background:linear-gradient(180deg,rgba(15,23,42,.6),rgba(2,6,23,.7));border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(8px)}
+  .vs-input{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;padding:.65rem .8rem;font-size:.95rem}
+  .vs-input:focus{outline:none;border-color:#2dd4bf;box-shadow:0 0 0 3px rgba(45,212,191,.15)}
+  .vs-btn{width:100%;border-radius:16px;padding:.7rem 1rem;font-weight:700}
+  .vs-btn-primary{background:linear-gradient(90deg,#fb7185,#f59e0b,#22d3ee);color:#111}
+  .vs-btn-ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)}
+  .vs-muted{color:#9CA3AF}.vs-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#0b1020}
+  .vs-link{text-decoration:underline;text-underline-offset:3px;color:#e5e7eb}
+</style>
+</head>
+<body class="vs-wrap">
+  <main class="w-full max-w-md p-4">
+    <div class="vs-card rounded-2xl p-5 shadow-xl">
+      <h1 class="text-center text-white text-2xl font-extrabold mb-2">VibeScript Builder</h1>
+      <p class="text-center vs-muted mb-4">Sign in with email/password or continue with Google.</p>
 
-        <!-- Sign-in -->
-        <form id="formSignIn" method="POST" action="/api/signin" class="space-y-3">
-          <div>
-            <label for="email" class="block text-xs vs-muted mb-1">Email</label>
-            <input id="email" name="email" type="email" required autocomplete="email"
-                   class="vs-input" placeholder="you@example.com" />
-          </div>
-
-          <div>
-            <label for="password" class="block text-xs vs-muted mb-1">Password</label>
-            <input id="password" name="password" type="password" required autocomplete="current-password"
-                   class="vs-input" placeholder="••••••••" />
-          </div>
-
-          <button type="submit" class="vs-btn vs-btn-primary">Sign in</button>
-        </form>
-
-        <!-- Always-visible Resend confirmation (uses the email field above) -->
-        <form id="formResend" method="POST" action="/api/resend-confirmation" class="mt-3">
-          <input type="hidden" name="email" id="resendEmail" />
-          <button type="submit" class="vs-btn vs-btn-ghost">Resend confirmation</button>
-        </form>
-
-        <div class="mt-3 text-center text-xs">
-          <span class="vs-muted">Don’t have an account?</span>
-          <a class="vs-link" href="/signup">Create account</a>
+      <form id="formSignIn" method="POST" action="/api/signin" class="space-y-3">
+        <div>
+          <label class="block text-xs vs-muted mb-1" for="email">Email</label>
+          <input class="vs-input" id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"/>
         </div>
+        <div>
+          <label class="block text-xs vs-muted mb-1" for="password">Password</label>
+          <input class="vs-input" id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••"/>
+        </div>
+        <button class="vs-btn vs-btn-primary" type="submit">Sign in</button>
+      </form>
 
-        <p class="vs-footer">
-          By continuing you agree to our
-          <a class="vs-link" href="/terms.html">terms</a>
-          and
-          <a class="vs-link" href="/privacy.html">privacy policy</a>.
-        </p>
-      </div>
-    </main>
+      <!-- Resend always visible; uses same email -->
+      <form id="formResend" method="POST" action="/api/resend-confirmation" class="mt-3">
+        <input type="hidden" name="email" id="resendEmail"/>
+        <button class="vs-btn vs-btn-ghost" type="submit">Resend confirmation</button>
+      </form>
 
-    <script>
-      // Keep the email in sync so the Resend button posts the same address
-      const emailInput = document.getElementById('email');
-      const resendHidden = document.getElementById('resendEmail');
-      function syncResend(){ resendHidden.value = (emailInput.value || '').trim(); }
-      emailInput.addEventListener('input', syncResend);
-      syncResend();
-
-      // Light inline toast when redirected back with ?msg=
-      const params = new URLSearchParams(location.search);
-      const msg = params.get('msg');
-      if (msg) {
-        const n = document.createElement('div');
-        n.textContent = decodeURIComponent(msg);
-        n.style.cssText = "position:fixed;inset:auto 12px 12px 12px;background:#111827;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.7rem 1rem;z-index:50";
-        document.body.appendChild(n);
-        setTimeout(()=>n.remove(), 3500);
-      }
-
-      // Remember last email between attempts
-      const last = sessionStorage.getItem('lastEmail') || '';
-      if (last && !emailInput.value) { emailInput.value = last; syncResend(); }
-      document.getElementById('formSignIn').addEventListener('submit', () => {
-        sessionStorage.setItem('lastEmail', (emailInput.value || '').trim());
-      });
-    </script>
-
-    <script src="/scripts/footer-loader.js"></script>
-  </body>
-</html>
+      <p class="text-center text-xs mt-3"><span class="vs-muted">New here?</span> <a class="vs-link" href="/signup">Create account</a></p>
+      <p class="text-center text-xs vs-muted mt-3">By continuing you agree to our <a class="vs-link" href="/terms.html">terms</a> and <a class="vs-link" href="/privacy.html">privacy policy</a>.</p>
+    </div>
+  </main>
+<script>
+  const emailInput=document.getElementById('email'), hidden=document.getElementById('resendEmail');
+  const sync=()=>hidden.value=(emailInput.value||'').trim(); emailInput.addEventListener('input',sync); sync();
+  const last=sessionStorage.getItem('lastEmail')||''; if(last && !emailInput.value){ emailInput.value=last; sync(); }
+  document.getElementById('formSignIn').addEventListener('submit', ()=>sessionStorage.setItem('lastEmail',(emailInput.value||'').trim()));
+  const p=new URLSearchParams(location.search), msg=p.get('msg'); if(msg){ alert(decodeURIComponent(msg)); }
+</script>
+<script src="/scripts/footer-loader.js"></script>
+</body></html>
