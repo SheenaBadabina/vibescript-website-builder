@@ -12,11 +12,11 @@ export async function onRequestPost({ request, env }) {
     const form = await request.formData();
     email = String(form.get("email") || "").trim().toLowerCase();
   }
-  if (!email) return html(400, page("Resend failed", msg("Email is required.")));
+  if (!email) return respond("Email is required.", 400);
 
   const user = await getUser(env, email);
-  if (!user) return html(200, done());           // Don’t leak account existence
-  if (user.verified) return html(200, done());   // Already verified → say “sent” anyway
+  // Do not leak user existence
+  if (!user || user.verified) return sent();
 
   const token = newToken();
   await putToken(env, token, { email }, 60 * 60 * 24); // 24h
@@ -27,19 +27,24 @@ export async function onRequestPost({ request, env }) {
     subject: "Your VibeScript confirmation link",
     html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
       <p>Here is your new confirmation link:</p>
-      <p><a href="${verifyUrl}" style="background:#10b981;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none">Confirm email</a></p>
+      <p><a href="${verifyUrl}" style="background:#10b981;color:#111;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700">Confirm email</a></p>
       <p>Or paste this link in your browser:<br/>${verifyUrl}</p>
       <p>This link expires in 24 hours.</p>
     </div>`
   });
 
-  return html(200, done());
+  return sent();
+
+  function sent(){
+    return redirectWithMsg("/signin", "If an account exists, a new confirmation link was sent.");
+  }
+  function respond(text, status=200){
+    return new Response(text, { status, headers:{ "content-type":"text/plain; charset=UTF-8"}});
+  }
 }
 
-export function onRequestGet(){ return html(405, page("Resend confirmation", msg("Use POST."))); }
-
-function html(status, content){ return new Response(content,{status,headers:{ "content-type":"text/html; charset=UTF-8"}}); }
-function page(title, inner){ return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${title} — VibeScript</title><link rel="stylesheet" href="/styles.css"/></head><body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 via-slate-950 to-black"><div class="w-full max-w-md p-6 rounded-2xl bg-black/30 border border-white/10 shadow-xl backdrop-blur">${inner}</div><script src="/scripts/footer-loader.js"></script></body></html>`; }
-function msg(text){ return `<p class="text-sm text-gray-300 mb-4">${escapeHtml(text)}</p><div class="flex gap-2"><a href="/signin" class="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white">Back to sign in</a></div>`; }
-function done(){ return page("Check your email", msg("If an account exists, a new confirmation was sent.")); }
-function escapeHtml(s=""){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function redirectWithMsg(path, msg){
+  const u = new URL(path, "https://builder.vibescript.online");
+  u.searchParams.set("msg", encodeURIComponent(msg));
+  return new Response(null, { status: 302, headers: { Location: u.toString() }});
+}
