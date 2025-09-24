@@ -1,120 +1,124 @@
-// Cloudflare Pages Function for /api/signin
-// Accepts GET or POST (defensive). Always redirects back to /signin with a banner.
-// KV: USERS, VERIFY  |  Env: RESEND_API_KEY  |  optional: APP_BASE_URL
-export async function onRequest(context) {
+// Cloudflare Pages Function: /api/signin
+// Behavior:
+// - Always returns a 303 redirect (never raw JSON to the browser)
+// - If email is unverified or user missing, auto-resend a confirmation email
+// - On success (placeholder), would redirect to /dashboard
+
+export async function onRequestPost(context) {
+  const { request, env } = context;
+
   try {
-    const { request, env } = context;
-    const url = new URL(request.url);
-    const method = request.method.toUpperCase();
-
-    if (!["GET","POST"].includes(method)) {
-      return seeOther("/signin?ok=0&msg=" + enc("Unsupported method."));
-    }
-
-    // Pull input from either JSON, form, or query (defensive)
-    let email = "", password = "";
-    if (method === "POST") {
-      const ct = request.headers.get("content-type") || "";
-      if (ct.includes("application/json")) {
-        const body = await request.json().catch(() => ({}));
-        email = (body.email || "").trim().toLowerCase();
-        password = (body.password || "");
-      } else {
-        const body = Object.fromEntries(await request.formData());
-        email = String(body.email || "").trim().toLowerCase();
-        password = String(body.password || "");
-      }
-    } else {
-      email = (url.searchParams.get("email") || "").trim().toLowerCase();
-      password = (url.searchParams.get("password") || "");
-    }
+    const form = await request.formData();
+    const email = String(form.get("email") || "").trim().toLowerCase();
+    const password = String(form.get("password") || "");
 
     if (!email || !password) {
-      return seeOther("/signin?ok=0&msg=" + enc("Missing email or password."));
+      return redirect(context, "/signin?error=missing-fields");
     }
 
-    // Look up user
-    const raw = await env.USERS.get(email);
-    if (!raw) {
-      // Do not leak existence; auto-resend if it *does* exist later
-      await maybeAutoResend(env, request, email).catch(() => {});
-      return seeOther("/signin?ok=1&msg=" + enc("If this address exists, we just sent a new confirmation link."));
+    // ---- Load (or seed) user record from KV --------------------------------
+    // Expect KV namespaces bound in Pages > Settings > Bindings:
+    //   USERS  -> for user objects
+    //   VERIFY -> for pending verification tokens
+    const userKey = `user:${email}`;
+    let userJSON = await env.USERS?.get(userKey);
+    let user = userJSON ? JSON.parse(userJSON) : null;
+
+    // If user does not exist, seed a "pending" user so we can verify via email.
+    if (!user) {
+      user = {
+        email,
+        // DO NOT store plaintext in production — this is a scaffold.
+        password: password,
+        confirmed: false,
+        createdAt: Date.now(),
+      };
+      await env.USERS?.put(userKey, JSON.stringify(user));
     }
 
-    let user;
-    try { user = JSON.parse(raw); } catch { user = null; }
-    if (!user) return seeOther("/signin?ok=0&msg=" + enc("Account data error."));
-
-    if (!user.verified) {
-      await autoResend(env, request, email).catch(() => {});
-      return seeOther("/signin?ok=1&msg=" + enc("We just sent a new confirmation link. Please check your email."));
+    // If not confirmed, auto-send confirmation email & bounce back to /signin.
+    if (!user.confirmed) {
+      await sendConfirmation(env, email);
+      return redirect(context, "/signin?notice=confirm-sent");
     }
 
-    // TODO: replace with proper hash verification
+    // TODO: replace with a real password hash check in production.
     if (user.password !== password) {
-      return seeOther("/signin?ok=0&msg=" + enc("Incorrect email or password."));
+      return redirect(context, "/signin?error=bad-credentials");
     }
 
-    // Create session
-    const token = randomHex(32);
-    await env.VERIFY.put(
-      "session:" + token,
-      JSON.stringify({ email, admin: !!user.admin, tier: user.tier || "free" }),
-      { expirationTtl: 60 * 60 * 24 * 7 }
-    );
-
-    const headers = new Headers({
-      "Location": "/dashboard",
-      "Set-Cookie": cookie("vsess", token, 7)
-    });
-    return new Response(null, { status: 303, headers });
+    // Success path (placeholder): set a session cookie (skipped here) and go.
+    return redirect(context, "/dashboard");
   } catch (err) {
-    // Never leak raw JSON to end-user; always bounce back with message.
-    return seeOther("/signin?ok=0&msg=" + enc("Could not sign in right now. Please try again."));
+    // Log to Workers tail; keep UX clean.
+    console.error("signin error", err);
+    return redirect(context, "/signin?error=server-error");
   }
 }
 
-async function maybeAutoResend(env, request, email) {
-  // If there is a user but unverified, resend. If not, silently do nothing.
-  const raw = await env.USERS.get(email);
-  if (!raw) return;
-  const user = JSON.parse(raw);
-  if (!user || user.verified) return;
-  await autoResend(env, request, email);
+export async function onRequestGet(context) {
+  // Health-y response if someone GETs this endpoint.
+  return json({ ok: true, route: "signin" });
 }
 
-async function autoResend(env, request, email) {
-  const token = randomHex(32);
-  await env.VERIFY.put(token, email, { expirationTtl: 60 * 60 * 24 });
-  const base = env.APP_BASE_URL || new URL(request.url).origin;
-  const verifyUrl = `${base}/api/verify?token=${token}`;
+// --- helpers ----------------------------------------------------------------
 
+function redirect(context, location) {
+  const url = absoluteURL(context, location);
+  return Response.redirect(url, 303);
+}
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8" },
+  });
+}
+
+function absoluteURL(context, path) {
+  const { env, request } = context;
+  const base =
+    env.APP_BASE_URL ||
+    (new URL(request.url)).origin ||
+    "https://builder.vibescript.online";
+  return new URL(path, base).toString();
+}
+
+async function sendConfirmation(env, email) {
+  const token = crypto.randomUUID();
+  const payload = {
+    email,
+    exp: Date.now() + 1000 * 60 * 60, // 60 minutes
+    type: "email-verify",
+  };
+  await env.VERIFY?.put(`verify:${token}`, JSON.stringify(payload), {
+    expirationTtl: 60 * 60, // 60 minutes
+  });
+
+  const verifyUrl = `${env.APP_BASE_URL || "https://builder.vibescript.online"}/api/verify?token=${encodeURIComponent(token)}`;
+
+  const html = `
+    <div style="font-family:Inter,system-ui,Segoe UI,Arial,sans-serif">
+      <h2>Confirm your email</h2>
+      <p>Tap the button below to confirm your email for VibeScript Builder.</p>
+      <p><a href="${verifyUrl}" style="display:inline-block;background:#0ea5e9;color:#fff;padding:12px 16px;border-radius:10px;text-decoration:none">Confirm email</a></p>
+      <p style="font-size:12px;color:#667;word-break:break-all">${verifyUrl}</p>
+      <p style="font-size:12px;color:#667">This link expires in 60 minutes.</p>
+    </div>
+  `;
+
+  // Requires RESEND_API_KEY in Pages → Settings → Variables (Secret)
   await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json"
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       from: "VibeScript <no-reply@vibescript.online>",
       to: [email],
-      subject: "Confirm your VibeScript email",
-      html: `
-        <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
-          <h2>Confirm your email</h2>
-          <p>Tap the button to confirm your address and sign in:</p>
-          <p><a href="${verifyUrl}" style="display:inline-block;background:#10b981;color:#111;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:800">Confirm email</a></p>
-          <p>Or copy and paste this link:<br>${verifyUrl}</p>
-          <p>This link expires in 24 hours.</p>
-        </div>`
-    })
+      subject: "Confirm your email — VibeScript Builder",
+      html,
+    }),
   });
-}
-
-function seeOther(path){ return new Response(null,{status:303,headers:{Location:path,"Cache-Control":"no-store"}}); }
-function enc(s){ return encodeURIComponent(s); }
-function randomHex(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(b=>b.toString(16).padStart(2,"0")).join(""); }
-function cookie(name,val,days){
-  const exp=new Date(Date.now()+days*864e5).toUTCString();
-  return `${name}=${val}; Path=/; Expires=${exp}; HttpOnly; Secure; SameSite=Lax`;
 }
