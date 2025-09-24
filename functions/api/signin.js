@@ -1,64 +1,75 @@
-import { getUser, putToken, newToken } from "../_utils/db.js";
-import { sign, setCookieHeader } from "../_utils/session.js";
-import { sendEmail } from "../_utils/email.js";
-
-export async function onRequestPost({ request, env }) {
+// Cloudflare Pages Function: POST /api/signin
+// KV bindings: USERS, VERIFY
+// Env: RESEND_API_KEY; optional APP_BASE_URL
+export async function onRequestPost(context) {
+  const { request, env } = context;
   const ct = request.headers.get("content-type") || "";
-  let email = "", password = "";
+  const form = ct.includes("application/json")
+    ? await request.json().catch(() => ({}))
+    : Object.fromEntries(await request.formData());
 
-  if (ct.includes("application/json")) {
-    const b = await request.json().catch(() => ({}));
-    email = (b.email || "").trim().toLowerCase();
-    password = b.password || "";
-  } else {
-    const f = await request.formData();
-    email = String(f.get("email") || "").trim().toLowerCase();
-    password = String(f.get("password") || "");
+  const email = String(form.email || "").trim().toLowerCase();
+  const password = String(form.password || "");
+
+  if (!email || !password) return redirect(`/signin?ok=0&msg=${enc("Missing email or password.")}`);
+
+  // Lookup user
+  const raw = await env.USERS.get(email);
+  if (!raw) {
+    // Generic message to avoid leaking existence
+    return redirect(`/signin?ok=0&msg=${enc("Sign in failed: Email not confirmed. If this address exists, we just sent a new confirmation link.")}`);
   }
+  let user; try { user = JSON.parse(raw); } catch { user = null; }
+  if (!user) return redirect(`/signin?ok=0&msg=${enc("Account data error. Please contact support.")}`);
 
-  if (!email || !password) return text(400, "Missing credentials.");
-
-  const user = await getUser(env, email);
-  // If account doesn't exist, keep the same UX text (don’t leak existence)
-  if (!user) return redirect(`/signin?msg=${encodeURIComponent("Sign in failed: Email not confirmed. We sent a new confirmation link if an account exists for that email.")}`);
-
-  // If not verified yet → auto-resend confirmation and bounce back with a message
+  // If not verified, auto-resend confirmation + inform user
   if (!user.verified) {
-    const token = newToken();
-    await putToken(env, token, { email }, 60 * 60 * 24); // 24h
-    const verifyUrl = new URL(`/api/verify?token=${token}`, request.url).toString();
-
     try {
-      await sendEmail(env, {
-        to: email,
-        subject: "Your new VibeScript confirmation link",
-        html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
-          <h2>Confirm your email</h2>
-          <p>Tap to confirm your address for VibeScript:</p>
-          <p><a href="${verifyUrl}" style="background:#10b981;color:#111;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700">Confirm email</a></p>
-          <p>Or paste this link:<br/>${verifyUrl}</p>
-          <p>This link expires in 24 hours.</p>
-        </div>`
-      });
-    } catch (_err) {
-      // keep the same outward message—don’t leak infra details
-    }
+      const token = randomHex(32);
+      await env.VERIFY.put(token, email, { expirationTtl: 60 * 60 * 24 });
+      const base = env.APP_BASE_URL || new URL(request.url).origin;
+      const verifyUrl = `${base}/api/verify?token=${token}`;
 
-    return redirect(`/signin?msg=${encodeURIComponent("We just sent a new confirmation link. Please check your email.")}`);
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: "VibeScript <no-reply@vibescript.online>",
+          to: [email],
+          subject: "Confirm your VibeScript email",
+          html: `
+          <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
+            <h2>Confirm your email</h2>
+            <p>Tap the button to confirm your address and sign in:</p>
+            <p><a href="${verifyUrl}" style="display:inline-block;background:#10b981;color:#111;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:800">Confirm email</a></p>
+            <p>Or copy and paste this link:<br>${verifyUrl}</p>
+            <p>This link expires in 24 hours.</p>
+          </div>`
+        })
+      });
+    } catch (_) {}
+    return redirect(`/signin?ok=1&msg=${enc("We just sent a new confirmation link. Please check your email.")}`);
   }
 
-  // Verified → check password (NOTE: for production, hash & compare)
-  if (user.password !== password) return text(400, "Incorrect password.");
+  // Verify password (NOTE: replace with hash verification in production)
+  if (user.password !== password) {
+    return redirect(`/signin?ok=0&msg=${enc("Incorrect email or password.")}`);
+  }
 
-  const token = await sign(env, { email: user.email, admin: !!user.admin, tier: user.tier || "free", iat: Date.now() });
-  const headers = new Headers({ "Set-Cookie": setCookieHeader(token) });
-  headers.set("Location", "/dashboard");
+  // Success: create session + redirect
+  const token = randomHex(32);
+  await env.VERIFY.put(`session:${token}`, JSON.stringify({ email, admin: !!user.admin, tier: user.tier || "free" }), { expirationTtl: 60 * 60 * 24 * 7 });
+  const headers = new Headers({ "Location": "/dashboard", "Set-Cookie": cookie("vsess", token, 7) });
   return new Response(null, { status: 302, headers });
 }
 
-function text(s, m) {
-  return new Response(m, { status: s, headers: { "content-type": "text/plain; charset=UTF-8" } });
-}
-function redirect(u) {
-  return new Response(null, { status: 302, headers: { Location: u } });
+function redirect(url){ return new Response(null,{status:302,headers:{Location:url}}); }
+function enc(s){ return encodeURIComponent(s); }
+function randomHex(bytes){ const a=new Uint8Array(bytes); crypto.getRandomValues(a); return [...a].map(b=>b.toString(16).padStart(2,"0")).join(""); }
+function cookie(name, value, days){
+  const d = new Date(Date.now()+days*864e5).toUTCString();
+  return `${name}=${value}; Path=/; Expires=${d}; HttpOnly; Secure; SameSite=Lax`;
 }
