@@ -1,57 +1,3 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VibeScript Builder — Sign in</title>
-  <style>
-    :root { color-scheme: dark; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"; background:#0b1220; }
-    .wrap { min-height:100dvh; display:grid; place-items:center; padding:24px; }
-    .card { width:min(560px, 100%); background:#121a2b; border-radius:20px; padding:24px; box-shadow:0 10px 40px rgba(0,0,0,.35); border:1px solid #1f2b46; }
-    .hdr { display:flex; gap:12px; align-items:center; margin-bottom:8px; }
-    .hdr .badge { font-size:12px; background:#ffd24d; color:#222; padding:4px 8px; border-radius:999px; font-weight:700; }
-    h1 { margin:6px 0 10px; font-size:28px; }
-    label { display:block; font-size:14px; margin:14px 0 8px; color:#a9b7d0; }
-    input { width:100%; background:#0f1625; border:1px solid #28324c; color:#e9efff; border-radius:12px; padding:14px 14px; font-size:16px; outline:none; }
-    .row { display:flex; gap:12px; margin-top:16px; }
-    .btn { flex:1; border:0; border-radius:14px; padding:14px 16px; font-weight:700; cursor:pointer; }
-    .btn--primary { background:linear-gradient(90deg,#ff6a00,#ffd800,#00c853,#4a77ff,#b968ff); color:#0b1220; }
-    .btn--ghost { background:#0f1625; color:#cfe1ff; border:1px solid #2a3759; }
-    .muted { color:#8ea2c6; font-size:13px; margin-top:14px; }
-    .msg { margin-top:14px; padding:12px 14px; border-radius:12px; font-size:14px; display:none }
-    .msg.ok { background:#0c2a1b; color:#b5ffdb; border:1px solid #1d6a45; }
-    .msg.err{ background:#2a1212; color:#ffb5b5; border:1px solid #6a1d1d; }
-    a { color:#8ec6ff; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <div class="hdr"><span class="badge">CANARY BUILD</span></div>
-      <h1>VibeScript Builder</h1>
-      <p class="muted">Sign in with email/password. (Google is disabled until OAuth is wired.)</p>
-
-      <form id="form" autocomplete="on">
-        <label>Email</label>
-        <input id="email" type="email" required placeholder="you@domain.com" />
-
-        <label>Password</label>
-        <input id="password" type="password" required minlength="8" placeholder="••••••••" />
-
-        <div class="row">
-          <button id="signin" type="button" class="btn btn--primary">Sign in</button>
-          <button id="create" type="button" class="btn btn--ghost">Create account</button>
-        </div>
-      </form>
-
-      <div id="ok" class="msg ok"></div>
-      <div id="err" class="msg err"></div>
-
-      <p class="muted">By continuing you agree to our <a href="/terms">terms</a> and <a href="/privacy">privacy policy</a>.</p>
-    </div>
-  </div>
-
 <script>
 const $ = (id)=>document.getElementById(id);
 const ok = $("ok"), err = $("err");
@@ -63,8 +9,7 @@ async function call(mode){
   hideAll();
   const email = $("email").value.trim();
   const password = $("password").value;
-
-  if(!email || !password) { show(err, "Enter email and password."); return; }
+  if(!email || !password){ show(err, "Enter email and password."); return; }
 
   try{
     const res = await fetch("/api/signin", {
@@ -73,19 +18,20 @@ async function call(mode){
       body: JSON.stringify({ mode, email, password })
     });
 
-    const data = await res.json().catch(()=>({}));
+    let data = {};
+    try { data = await res.clone().json(); } catch {}
+    const msg = (data && data.error) ? data.error : `HTTP ${res.status} ${res.statusText||""}`.trim();
+
     if(!res.ok || !data.ok){
       if(data.reason === "unverified" && data.resent){
         show(ok, "Email not confirmed. A new confirmation email has been sent — please check your inbox.");
       } else {
-        show(err, data.error || `Sign-in failed (HTTP ${res.status}).`);
+        show(err, msg);
       }
       return;
     }
 
-    // success
     show(ok, mode === "create" ? "Account created. Check your email to confirm." : "Signed in!");
-    // redirect when logged in (if your app sets a session/redirect)
     if(data.redirect) location.href = data.redirect;
   }catch(e){
     show(err, e.message || "Network error.");
@@ -95,5 +41,3 @@ async function call(mode){
 $("signin").addEventListener("click", ()=>call("login"));
 $("create").addEventListener("click", ()=>call("create"));
 </script>
-</body>
-</html>
