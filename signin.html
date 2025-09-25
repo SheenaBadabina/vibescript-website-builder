@@ -1,43 +1,81 @@
-<script>
-const $ = (id)=>document.getElementById(id);
-const ok = $("ok"), err = $("err");
-
-function show(el, text){ el.textContent = text; el.style.display = "block"; }
-function hideAll(){ ok.style.display = "none"; err.style.display = "none"; }
-
-async function call(mode){
-  hideAll();
-  const email = $("email").value.trim();
-  const password = $("password").value;
-  if(!email || !password){ show(err, "Enter email and password."); return; }
-
-  try{
-    const res = await fetch("/api/signin", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mode, email, password })
-    });
-
-    let data = {};
-    try { data = await res.clone().json(); } catch {}
-    const msg = (data && data.error) ? data.error : `HTTP ${res.status} ${res.statusText||""}`.trim();
-
-    if(!res.ok || !data.ok){
-      if(data.reason === "unverified" && data.resent){
-        show(ok, "Email not confirmed. A new confirmation email has been sent — please check your inbox.");
-      } else {
-        show(err, msg);
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in • VibeScript</title>
+    <meta name="color-scheme" content="light dark" />
+    <style>
+      :root { --bg:#0b0d10; --fg:#e7f7ff; --muted:#9fb7c5; --brand:#20c0c8; }
+      @media (prefers-color-scheme: light) {
+        :root { --bg:#ffffff; --fg:#0b0d10; --muted:#5a6b75; --brand:#0aa6ae; }
       }
-      return;
-    }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+        display: grid; place-items: center; padding: 24px;
+      }
+      .card {
+        width: 100%; max-width: 420px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px; padding: 20px;
+      }
+      h1 { margin: 0 0 8px; font-size: 1.5rem; }
+      p { margin: 0 0 16px; color: var(--muted); }
+      label { display:block; font-weight:600; margin:12px 0 6px; }
+      input[type="email"], input[type="password"]{
+        width:100%; padding:12px 14px; border-radius:10px;
+        border:1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.06); color: var(--fg);
+      }
+      .btn {
+        width:100%; margin-top:16px; padding:12px 14px; border:0; border-radius:12px;
+        background: var(--brand); color:#002326; font-weight:700; cursor:pointer;
+      }
+      .hint{ margin-top:10px; text-align:center; color:var(--muted); font-size:.9rem; }
+      a{ color:var(--brand); text-decoration:none; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Welcome back</h1>
+      <p>Sign in to continue.</p>
+      <form id="signin-form" method="POST" action="/api/auth/signin" novalidate>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <button class="btn" type="submit">Sign in</button>
+      </form>
+      <div class="hint">No account? <a href="/signup">Create one</a></div>
+    </main>
 
-    show(ok, mode === "create" ? "Account created. Check your email to confirm." : "Signed in!");
-    if(data.redirect) location.href = data.redirect;
-  }catch(e){
-    show(err, e.message || "Network error.");
-  }
-}
-
-$("signin").addEventListener("click", ()=>call("login"));
-$("create").addEventListener("click", ()=>call("create"));
-</script>
+    <script>
+      // Progressive enhancement: page renders even if JS fails.
+      (function () {
+        const form = document.getElementById('signin-form');
+        if (!form) return;
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(form));
+          try {
+            const res = await fetch('/api/auth/signin', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(data),
+            });
+            if (res.ok) location.href = '/dashboard';
+            else alert((await res.text()) || 'Sign-in failed.');
+          } catch {
+            alert('Network error. Try again.');
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+```0
