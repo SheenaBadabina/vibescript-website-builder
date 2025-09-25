@@ -1,7 +1,4 @@
-/signin        /signin.html     200
-/signup        /signup.html     200
-/dashboard     /dashboard.html  200
-/edit          /edit.html       200
-
-# No SPA catch-all while we stabilize:
-# /*            /index.html      200
+/signin     /signin.html     200
+/signup     /signup.html     200
+/dashboard  /dashboard.html  200
+/edit       /edit.html       200
