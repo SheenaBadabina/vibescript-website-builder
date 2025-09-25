@@ -3,164 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VibeScript Builder — Dashboard</title>
+  <title>Dashboard • VibeScript</title>
+  <meta name="color-scheme" content="light dark" />
   <style>
-    :root{
-      --chakra-1:#ff3b30; --chakra-2:#ff9500; --chakra-3:#ffd60a; --chakra-4:#22c55e; --chakra-5:#0ea5e9; --chakra-6:#7c3aed; --chakra-7:#ec4899;
-      --bg:#06090f; --card:#0d1220; --text:#eaf2ff; --muted:#9fb0c8; --border:rgba(159,176,200,.18);
-      --logo-url:url('/assets/file_00000000349861f5891169618f3eb38a.png');
-      --bolt-url:url('/assets/file_000000001048622f95bff34ddca0e28a.png');
-    }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{
-      margin:0;color:var(--text);
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:radial-gradient(1200px 700px at 10% -10%, rgba(236,72,153,.22), transparent 60%), radial-gradient(1200px 700px at 90% 0%, rgba(124,58,237,.20), transparent 60%), var(--bg);
-    }
-    .bolt::before{content:"";position:fixed;inset:0;background-image:var(--bolt-url);background-repeat:no-repeat;background-position:left -140px top -80px;background-size:min(1200px,160%);opacity:.12;mix-blend-mode:screen;pointer-events:none;z-index:0}
-    .wrap{min-height:100%;display:grid;place-items:start center;padding:16px;position:relative;z-index:1}
-    .shell{width:min(1100px,100%);display:grid;gap:14px}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02)),var(--card);border:1px solid var(--border);border-radius:22px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.45)}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:40px;height:40px;border-radius:12px;background-image:var(--logo-url);background-size:cover;background-position:center;border:1px solid var(--border)}
-    h1{margin:.1em 0;font-size: clamp(24px, 6vw, 30px);letter-spacing:-.01em} h2{margin:.2em 0 .6em;font-size: clamp(18px, 4.2vw, 22px)}
-    .muted{color:var(--muted)} .ok{color:#86efac} .err{color:#fca5a5}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0f1527;color:var(--text);cursor:pointer;font-weight:700;transition:transform .04s ease, box-shadow .12s ease, opacity .2s}
-    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.25)} .btn[disabled]{opacity:.6;cursor:not-allowed}
-    .btn-cta{border:0;color:#07120a;background:linear-gradient(90deg,var(--chakra-4), var(--chakra-5), var(--chakra-6));box-shadow:0 6px 20px rgba(14,165,233,.35)}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px} @media(min-width:980px){ .grid{grid-template-columns:1.1fr .9fr} }
-    .panel{border:1px solid var(--border);border-radius:16px;padding:14px;background:#0b1020}
-    label{display:block;font-size:13px;color:#c7d4e6;margin:8px 0 6px}
-    input, textarea, select{width:100%;padding:10px 12px;border-radius:12px;background:#0b1020;color:var(--text);border:1px solid var(--border);font-size:15px}
-    textarea{min-height:120px;resize:vertical} .small{font-size:12px}
-    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .kpi{background:#0b1222;border:1px solid var(--border);border-radius:12px;padding:10px}
-    .kpi .val{font-weight:800;font-size:22px} pre{margin:0;white-space:pre-wrap;word-break:break-word;background:#0b1222;border-radius:12px;padding:12px;border:1px solid var(--border)}
-    iframe.preview{width:100%;min-height:480px;background:#fff;border:0;border-radius:12px} a{color:#a7f3d0;text-decoration:none}
+    :root { --bg:#0b0d10; --fg:#e7f7ff; --muted:#9fb7c5; --brand:#20c0c8; }
+    @media (prefers-color-scheme: light) { :root { --bg:#fff; --fg:#0b0d10; --muted:#5a6b75; --brand:#0aa6ae; } }
+    *{box-sizing:border-box} html,body{height:100%;margin:0}
+    body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;padding:16px}
+    header{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .btn{padding:10px 14px;border:0;border-radius:12px;background:var(--brand);color:#002326;font-weight:700}
+    .card{margin-top:16px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.04)}
+    a{color:var(--brand);text-decoration:none}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bolt">
-  <main class="wrap">
-    <div class="shell">
+<body>
+  <header>
+    <h1 style="margin:0;font-size:1.25rem">VibeScript Dashboard</h1>
+    <nav><a class="btn" href="/signin">Sign out</a></nav>
+  </header>
 
-      <section class="card">
-        <div class="row" style="justify-content:space-between">
-          <div class="brand">
-            <div class="logo" aria-hidden="true"></div>
-            <div>
-              <h1>VibeScript Dashboard</h1>
-              <div class="muted small">Speak a website into existence. Run campaigns. Iterate fast.</div>
-            </div>
-          </div>
-          <div class="row">
-            <span id="who" class="muted small">Checking session…</span>
-            <a class="btn" href="/signin.html">Sign in</a>
-            <button id="signout" class="btn btn-cta">Sign out</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="kpis">
-          <div class="kpi"><div class="val" id="k-sites">0</div><div class="muted small">Sites Generated</div></div>
-          <div class="kpi"><div class="val" id="k-campaigns">0</div><div class="muted small">Campaign Drafts</div></div>
-          <div class="kpi"><div class="val" id="k-downloads">0</div><div class="muted small">Downloads</div></div>
-        </div>
-      </section>
-
-      <section class="grid">
-        <div class="panel">
-          <h2>Website Generator</h2>
-          <p class="muted small">Describe your business and the vibe. Tap the mic and talk—we’ll transcribe.</p>
-          <div class="row">
-            <button id="mic" class="btn" type="button">🎙️ Speak prompt</button>
-            <button id="stopMic" class="btn" type="button" disabled>⏹ Stop</button>
-          </div>
-          <label for="prompt">Prompt</label>
-          <textarea id="prompt" placeholder="A desert-themed wellness coach called VibeScript… Warm, optimistic, cosmic-chakra vibe."></textarea>
-          <div class="row" style="margin-top:8px">
-            <div style="flex:1">
-              <label for="palette">Palette</label>
-              <select id="palette">
-                <option value="chakra">Chakra Gradient</option>
-                <option value="sunset">Desert Sunset</option>
-                <option value="ocean">Ocean Neon</option>
-                <option value="mono">Minimal Mono</option>
-              </select>
-            </div>
-            <div style="flex:1">
-              <label for="cta">Call-to-action text</label>
-              <input id="cta" placeholder="Start your journey" />
-            </div>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <button id="gen" class="btn btn-cta" type="button">✨ Generate Site</button>
-            <button id="download" class="btn" type="button" disabled>⬇️ Download index.html</button>
-          </div>
-          <p id="genStatus" class="muted small" style="margin-top:8px"></p>
-          <iframe id="preview" class="preview" title="Live preview"></iframe>
-        </div>
-
-        <div class="panel">
-          <h2>Ad Campaign Studio</h2>
-          <p class="muted small">Draft headlines, primary text, audience ideas, and offers from the same prompt.</p>
-          <label for="adPrompt">Campaign prompt</label>
-          <textarea id="adPrompt" placeholder="Use your website prompt or paste something ad-specific."></textarea>
-          <div class="row" style="margin-top:8px">
-            <button id="adGen" class="btn btn-cta" type="button">🧪 Generate Drafts</button>
-            <button id="adDownload" class="btn" type="button" disabled>⬇️ Download drafts.txt</button>
-          </div>
-          <p id="adStatus" class="muted small" style="margin-top:8px"></p>
-          <pre id="adOutput"></pre>
-          <hr style="border:none;height:1px;background:var(--border);margin:14px 0">
-          <div class="muted small"><b>Next:</b> wire “Deploy” + “Save” to Pages Functions and Supabase.</div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="row" style="justify-content:space-between">
-          <div class="muted small">VibeScript • Build with good vibes and better copy.</div>
-          <div class="row">
-            <a class="btn" href="https://dash.cloudflare.com/?to=/:account/pages/view/sheenas-adventures/deployments" target="_blank" rel="noopener">Cloudflare Deployments</a>
-            <a class="btn" href="https://builder.vibescript.online/signin.html" target="_blank" rel="noopener">Live Sign-in</a>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <script>
-    const SUPABASE_URL = 'https://gsgdbawjwpveqrasoasn.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZ2RiYXdqd3B2ZXFyYXNvYXNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTAxMDcsImV4cCI6MjA3Mzk2NjEwN30.qZQLqWZyPLDlyHbfm05D3miMg_1GD5ERitB6QKnUWKI';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true} });
-
-    const who = document.getElementById('who'); const signoutBtn = document.getElementById('signout');
-    async function checkSession(){ const { data, error } = await supabase.auth.getSession(); if(error){ who.textContent='Auth error: '+error.message; return; } if(!data.session){ who.textContent='No session — please sign in.'; return; } who.textContent='Signed in as: '+(data.session.user.email || data.session.user.id); }
-    signoutBtn.addEventListener('click', async ()=>{ signoutBtn.disabled=true; await supabase.auth.signOut(); window.location.href='/signin.html'; });
-    checkSession();
-
-    let sites=0,campaigns=0,downloads=0; const K=id=>document.getElementById(id); function bump(id,val){K(id).textContent=val;}
-
-    const genBtn=K('gen'), dlBtn=K('download'), genStatus=K('genStatus'), preview=K('preview');
-    function setGenStatus(t,cls='muted'){ genStatus.textContent=t; genStatus.className='small '+cls; }
-    function paletteCSS(name){ switch(name){ case 'sunset':return 'linear-gradient(90deg,#f97316,#ea580c,#ef4444)'; case 'ocean':return 'linear-gradient(90deg,#06b6d4,#3b82f6,#8b5cf6)'; case 'mono':return '#111827'; default:return 'linear-gradient(90deg,#22c55e,#0ea5e9,#7c3aed)'; } }
-    function makeHTML({title, blurb, cta, palette}){ const gradient=paletteCSS(palette); return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/><title>${title} — VibeScript</title><style>:root{--bg:#0a0c10;--card:#0f1218;--text:#eef3ff;--muted:#9fb0c8;--accent:${gradient}}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:var(--bg)}.hero{min-height:88dvh;display:grid;place-items:center;padding:24px;background:radial-gradient(1200px 700px at 80% -10%, rgba(124,58,237,.25), transparent 60%),radial-gradient(1200px 700px at 0% 0%, rgba(14,165,233,.22), transparent 60%),var(--bg)}.card{width:min(920px,100%);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02)),var(--card);border:1px solid rgba(159,176,200,.18);border-radius:22px;padding:22px;box-shadow:0 18px 44px rgba(0,0,0,.45)}h1{margin:.1em 0;font-size:clamp(28px,8vw,42px);letter-spacing:-.01em}p{color:var(--muted);font-size:clamp(14px,3.3vw,17px)}.cta{margin-top:14px;display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;border:0;background:var(--accent);color:#07120a;font-weight:800;box-shadow:0 6px 20px rgba(14,165,233,.35);text-decoration:none}.grid{display:grid;gap:12px;margin-top:16px}@media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}.feat{background:#0b1222;border:1px solid rgba(159,176,200,.18);border-radius:16px;padding:14px}</style><header class="hero"><div class="card"><h1>${title}</h1><p>${blurb}</p><a class="cta" href="#start">${cta}</a><div class="grid"><div class="feat"><b>Guided Prompts</b><br>Daily writing sparks tuned to your mood.</div><div class="feat"><b>Cosmic Themes</b><br>Pick a chakra palette and watch the page glow.</div><div class="feat"><b>Workshops</b><br>Weekly live sessions to sharpen your story.</div></div></div></header><section id="start" style="padding:24px;max-width:920px;margin:auto"><h2>Start Your Journey</h2><p>Ready to launch? Edit this section with your pricing, packages, FAQs, or a calendar link.</p></section></html>`; }
-    function parsePrompt(p){ if(!p) return {title:'Your New VibeSite', blurb:'Describe your practice and Vibe; we’ll craft a landing page with chakra energy and clean structure.'}; const firstLine=p.split('\n')[0].trim(); const title=firstLine.length>6?firstLine:'Your New VibeSite'; return {title, blurb:p}; }
-    genBtn.addEventListener('click', ()=>{ const p=K('prompt').value.trim(); const {title,blurb}=parsePrompt(p); const html=makeHTML({title,blurb,cta:(K('cta').value.trim()||'Start your journey'),palette:K('palette').value}); preview.srcdoc=html; dlBtn.dataset.blob=html; dlBtn.disabled=true==false; sites++; bump('k-sites',sites); setGenStatus('Site generated — preview below.', 'ok'); });
-    dlBtn.addEventListener('click', ()=>{ const html=dlBtn.dataset.blob||''; if(!html) return; const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='index.html'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); downloads++; bump('k-downloads',downloads); });
-
-    const micBtn=K('mic'), micStop=K('stopMic'); let recognition=null;
-    function ensureRecognizer(){ const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null; const r=new SR(); r.lang='en-US'; r.interimResults=true; r.continuous=true; return r; }
-    micBtn.addEventListener('click', ()=>{ if(recognition) return; recognition=ensureRecognizer(); if(!recognition){ alert('Speech recognition not supported in this browser.'); return; } micBtn.disabled=true; micStop.disabled=false; K('prompt').focus(); recognition.onresult=(e)=>{ let str=''; for(const res of e.results){ str += res[0].transcript + ' '; } K('prompt').value=str.trim(); }; recognition.onend=()=>{ micBtn.disabled=false; micStop.disabled=true; recognition=null; }; recognition.start(); });
-    micStop.addEventListener('click', ()=>{ if(recognition){ recognition.stop(); } });
-
-    const adBtn=K('adGen'), adOut=K('adOutput'), adDL=K('adDownload'), adStatus=K('adStatus'); function setAdStatus(t,cls='muted'){ adStatus.textContent=t; adStatus.className='small '+cls; }
-    function makeAds(seed){ const base=seed||'VibeScript — guided journaling, chakra-themed coaching, weekly workshops.'; const brand='VibeScript'; const offers=['Free 7-day prompt pack','First workshop 50% off','Founders pricing for 30 days','Book a free clarity call','Join our live cohort this week']; const headlines=['Write Your Future — One Prompt at a Time','Your Story, Supercharged by Vibes','Chakra-Powered Clarity Starts Here','Stop Doomscrolling, Start Journaling','Turn Blank Pages into Breakthroughs']; const primary=[`${brand} gives you guided prompts, a weekly workshop, and a dashboard that feels like a studio. Start today.`,`Pick a chakra palette, speak your site into existence, and build momentum with community.`,`If you can talk about it, you can ship it. ${brand} turns ideas into pages and posts.`]; const audiences=['Wellness creators 22–45 in the US','Solo coaches craving brand clarity','Mindfulness communities and yoga studios','Writers who want structure + accountability']; const lines=[]; lines.push('# Headlines'); headlines.forEach(h=>lines.push('- '+h)); lines.push('\n# Primary Text'); primary.forEach(t=>lines.push('- '+t)); lines.push('\n# Offers'); offers.forEach(o=>lines.push('- '+o)); lines.push('\n# Audiences'); audiences.forEach(a=>lines.push('- '+a)); lines.push('\n# Seed Prompt\n'+base); return lines.join('\n'); }
-    adBtn.addEventListener('click', ()=>{ const txt=makeAds(K('adPrompt').value.trim()); adOut.textContent=txt; adDL.dataset.txt=txt; adDL.disabled=false; campaigns++; bump('k-campaigns',campaigns); setAdStatus('Drafts generated. Edit or download below.', 'ok'); });
-    adDL.addEventListener('click', ()=>{ const txt=adDL.dataset.txt||''; if(!txt) return; const blob=new Blob([txt],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='vibescript-campaign-drafts.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); });
-  </script>
+  <section class="card">
+    <p>Signed in. This is a placeholder dashboard so the sign-in redirect has a destination.</p>
+    <p>Next steps: add project list, site generator, and voice input.</p>
+  </section>
 </body>
 </html>
