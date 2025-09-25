@@ -3,113 +3,59 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VibeScript Builder</title>
+  <title>Edit • VibeScript</title>
+  <meta name="color-scheme" content="light dark" />
   <style>
-    :root { --bg:#0c1420; --card:#0f1b2a; --text:#e7eef7; --muted:#9db2c9; --brand:#7c5cff; }
-    html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-    .wrap{max-width:720px;margin:0 auto;padding:48px 20px}
-    .card{background:var(--card);border:1px solid #223149;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
-    h1{font-size:36px;margin:0 0 8px} .lead{color:var(--muted);margin:0 0 24px}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    input[type="password"],input[type="text"]{flex:1;min-width:240px;background:#0a1422;border:1px solid #28364a;border-radius:12px;color:var(--text);padding:14px 16px;font-size:16px;outline:none}
-    input::placeholder{color:#6c85a3}
-    button{background:var(--brand);border:0;color:white;padding:14px 18px;border-radius:12px;font-weight:700;cursor:pointer}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .note{font-size:14px;color:var(--muted);margin-top:10px}
-    .debug{margin-top:18px;border-top:1px dashed #2a3a52;padding-top:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#cfe2ff;white-space:pre-wrap}
-    .ok{color:#9ff29f} .err{color:#ff9aa2}
-    .hidden{display:none}
-    .link{color:#9fc5ff;text-decoration:underline;cursor:pointer}
+    :root { --bg:#0b0d10; --fg:#e7f7ff; --muted:#9fb7c5; --brand:#20c0c8; }
+    @media (prefers-color-scheme: light){ :root{ --bg:#fff; --fg:#0b0d10; --muted:#5a6b75; --brand:#0aa6ae; } }
+    *{box-sizing:border-box} html,body{height:100%;margin:0}
+    body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    h1{margin:0;font-size:1.2rem}
+    .row{display:grid;gap:12px;margin-top:16px}
+    textarea{width:100%;min-height:160px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--fg)}
+    .btn{padding:12px 14px;border:0;border-radius:12px;background:var(--brand);color:#002326;font-weight:700}
+    .muted{color:var(--muted);font-size:.9rem}
+    .card{padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.04)}
+    iframe{width:100%;height:55vh;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:#fff}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>🔒 VibeScript Builder</h1>
-      <p class="lead">Enter your access token to continue.</p>
+  <header>
+    <h1>VibeScript Editor</h1>
+    <nav><a class="btn" href="/dashboard">Back</a></nav>
+  </header>
 
-      <div class="row">
-        <input id="token" type="password" placeholder="token" autocomplete="off" />
-        <button id="go">Continue</button>
-      </div>
-      <div class="note">Tip: you can also open <span class="link" id="qs">/edit?key=YOUR_TOKEN</span></div>
-
-      <div id="debug" class="debug hidden"></div>
-
-      <div id="unlocked" class="hidden">
-        <p class="ok">✅ Token valid. Loading builder…</p>
-      </div>
-      <div id="blocked" class="hidden">
-        <p class="err">❌ Access denied. Check your token or server binding.</p>
-      </div>
+  <section class="row card">
+    <div class="muted">Paste or tweak your HTML below. Preview updates live.</div>
+    <textarea id="code" placeholder="<!doctype html> …"></textarea>
+    <div class="row">
+      <button id="previewBtn" class="btn" type="button">Preview</button>
+      <a id="download" class="btn" href="#" download="index.html" style="display:none">Download</a>
     </div>
-  </div>
+  </section>
+
+  <section class="row">
+    <div class="card">
+      <div class="muted" style="margin-bottom:8px">Preview</div>
+      <iframe id="preview"></iframe>
+    </div>
+  </section>
 
   <script>
-    const INPUT = document.getElementById('token');
-    const BTN = document.getElementById('go');
-    const DBG = document.getElementById('debug');
-    const OK = document.getElementById('unlocked');
-    const NO = document.getElementById('blocked');
-    const QS = document.getElementById('qs');
+    const code = document.getElementById('code');
+    const iframe = document.getElementById('preview');
+    const btn = document.getElementById('previewBtn');
+    const dl = document.getElementById('download');
 
-    const STORAGE_KEY = 'VS_BUILDER_TOKEN';
-
-    // Fill from ?key=... if present
-    const url = new URL(location.href);
-    const qsKey = url.searchParams.get('key');
-    if (qsKey) INPUT.value = qsKey;
-
-    QS.addEventListener('click', () => {
-      const sample = location.origin + '/edit?key=PASTE_TOKEN_HERE';
-      navigator.clipboard?.writeText(sample).catch(()=>{});
-      show('Copied example to clipboard:\n' + sample);
-    });
-
-    function show(msg, isError=false){
-      DBG.classList.remove('hidden');
-      DBG.innerText = (isError ? '⚠️ ' : '') + msg;
-      if(isError) { NO.classList.remove('hidden'); OK.classList.add('hidden'); }
-    }
-
-    async function testToken(token){
-      try{
-        const res = await fetch('/api/ping', {
-          method: 'GET',
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const text = await res.text();
-
-        show(`Response ${res.status}: ${text}${res.headers.get('cf-ray') ? `\nRay: ${res.headers.get('cf-ray')}` : ''}`);
-
-        if(res.ok){
-          OK.classList.remove('hidden');
-          NO.classList.add('hidden');
-          localStorage.setItem(STORAGE_KEY, token);
-          // Give the message a moment to show, then reload clean /edit
-          setTimeout(() => { location.href = '/edit'; }, 600);
-        }else{
-          NO.classList.remove('hidden');
-          OK.classList.add('hidden');
-        }
-      }catch(err){
-        show('Network error: ' + (err?.message || err), true);
-      }
-    }
-
-    BTN.addEventListener('click', () => {
-      const token = INPUT.value.trim();
-      if(!token){ show('Please enter a token'); return; }
-      BTN.disabled = true;
-      testToken(token).finally(() => BTN.disabled = false);
-    });
-
-    // Auto-test if token already saved
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if(saved && !qsKey){
-      show('Found saved token, validating…');
-      testToken(saved);
-    }
+    btn.onclick = () => {
+      const html = code.value || "<!doctype html><meta charset='utf-8'><title>Empty</title><h1 style='font-family:system-ui'>Empty</h1>";
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      iframe.src = url;
+      dl.href = url;
+      dl.style.display = 'inline-block';
+    };
   </script>
 </body>
 </html>
