@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign up • VibeScript</title>
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root { --bg:#0b0d10; --fg:#e7f7ff; --muted:#9fb7c5; --brand:#20c0c8; }
+    @media (prefers-color-scheme: light) { :root { --bg:#fff; --fg:#0b0d10; --muted:#5a6b75; --brand:#0aa6ae; } }
+    *{box-sizing:border-box} html,body{height:100%;margin:0}
+    body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;display:grid;place-items:center;padding:24px}
+    .card{width:100%;max-width:420px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px}
+    h1{margin:0 0 8px;font-size:1.5rem} p{margin:0 0 16px;color:var(--muted)}
+    label{display:block;font-weight:600;margin:12px 0 6px}
+    input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--fg)}
+    .btn{width:100%;margin-top:16px;padding:12px 14px;border:0;border-radius:12px;background:var(--brand);color:#002326;font-weight:700;cursor:pointer}
+    .hint{margin-top:10px;text-align:center;color:var(--muted);font-size:.9rem} a{color:var(--brand);text-decoration:none}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Create account</h1>
+    <p>Sign up to start building with VibeScript.</p>
+    <form id="signup-form" method="POST" action="/api/auth/signup" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required autocomplete="email" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required autocomplete="new-password" />
+      <button class="btn" type="submit">Sign up</button>
+    </form>
+    <div class="hint">Already have an account? <a href="/signin">Sign in</a></div>
+  </main>
+
+  <script>
+    (function () {
+      const form = document.getElementById('signup-form');
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form));
+        try {
+          const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(data)
+          });
+          if (res.ok) location.href = '/dashboard';
+          else alert((await res.text()) || 'Sign-up failed.');
+        } catch {
+          alert('Network error.');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
